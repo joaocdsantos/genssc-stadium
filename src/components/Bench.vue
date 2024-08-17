@@ -1599,7 +1599,7 @@ export default {
           "seccao": "branca",
           "fila": "F",
           "lugar": 19,
-          "nome": "Anónimo"
+          "nome": "ELITE PRESENTE"
         },
         {
           "seccao": "branca",
@@ -1611,7 +1611,7 @@ export default {
           "seccao": "branca",
           "fila": "F",
           "lugar": 21,
-          "nome": ""
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
@@ -1677,13 +1677,13 @@ export default {
           "seccao": "vermelha",
           "fila": "A",
           "lugar": 11,
-          "nome": "Joaquim Oliveira"
+          "nome": "Pilar Vermelho - não existe cadeira"
         },
         {
           "seccao": "vermelha",
           "fila": "A",
           "lugar": 12,
-          "nome": "Pilar Vermelho - não existe cadeira"
+          "nome": "Joaquim Oliveira"
         },
         {
           "seccao": "vermelha",
@@ -2145,19 +2145,19 @@ export default {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 1,
-          "nome": "Anónimo"
+          "nome": "Minimercado Olga Queirós"
         },
         {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 2,
-          "nome": "Anónimo"
+          "nome": "José Queirós"
         },
         {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 3,
-          "nome": "Anónimo"
+          "nome": "Fernando Oliveira"
         },
         {
           "seccao": "vermelha",
@@ -2193,19 +2193,19 @@ export default {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 9,
-          "nome": "Mini Mercado Olga Queirós"
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 10,
-          "nome": "José Queirós"
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
           "fila": "E",
           "lugar": 11,
-          "nome": "Fernando Oliveira"
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
@@ -2277,19 +2277,19 @@ export default {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 1,
-          "nome": ""
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 2,
-        "nome": ""
+        "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 3,
-          "nome": ""
+          "nome": "Anónimo"
         },
         {
           "seccao": "vermelha",
@@ -2361,49 +2361,49 @@ export default {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 15,
-          "nome": ""
+          "nome": "Mady Moreira de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 16,
-          "nome": ""
+          "nome": "Tomy Moreira de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 17,
-          "nome": ""
+          "nome": "Jonathan Moreira de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 18,
-          "nome": ""
+          "nome": "Maél Schmitt de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 19,
-          "nome": ""
+          "nome": "Milan Schmitt de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 20,
-          "nome": ""
+          "nome": "Júnior Moreira de Sousa"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 21,
-          "nome": ""
+          "nome": "Rodrigo Gonçalves"
         },
         {
           "seccao": "vermelha",
           "fila": "F",
           "lugar": 22,
-          "nome": ""
+          "nome": "Marco Gonçalves"
         }
       ]
       this.chairMeshes = [];
@@ -2538,7 +2538,7 @@ export default {
       // Definir posições dos pilares
       const greenPillarX = greenStartX + 10 * spacing;
       const whitePillarX = whiteStartX + 10 * spacing;
-      const redPillarX = redStartX + 10 * spacing;
+      const redPillarX = redStartX + 11 * spacing;
 
       for (let i = 0; i < rows; i++) {
         // Adicionar cadeiras Verdes (22x6)
