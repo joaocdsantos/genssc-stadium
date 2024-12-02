@@ -1,22 +1,11 @@
 <template>
-  <div id='app'>
   <ChairBench/>
   <Analytics/>
-  </div>
 </template>
 
-<script>
+<script setup>
 import {Analytics} from '@vercel/analytics/vue';
 import ChairBench from './components/Bench.vue';
-
-
-export default {
-  name: 'App',
-  components: {
-    ChairBench,
-    Analytics
-  }
-}
 </script>
 
 <style>
