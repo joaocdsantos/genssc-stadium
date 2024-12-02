@@ -1,16 +1,20 @@
 <template>
-  <div id="app">
-    <ChairBench/>
+  <div id='app'>
+  <ChairBench/>
+  <Analytics/>
   </div>
 </template>
 
 <script>
+import {Analytics} from '@vercel/analytics/vue';
 import ChairBench from './components/Bench.vue';
+
 
 export default {
   name: 'App',
   components: {
     ChairBench,
+    Analytics
   }
 }
 </script>
@@ -23,6 +27,7 @@ html, body, #app {
   padding: 0;
   overflow: hidden; /* Garante que o conteúdo não cause scroll */
 }
+
 #app {
   display: flex;
   flex-direction: column;
