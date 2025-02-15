@@ -1,26 +1,30 @@
 <template>
-  <ChairBench/>
-  <Analytics/>
+  <ChairBench />
+  <Analytics />
+  <Footer />
 </template>
 
 <script setup>
-import {Analytics} from '@vercel/analytics/vue';
+import { Analytics } from '@vercel/analytics/vue';
 import ChairBench from './components/Bench.vue';
+import Footer from './components/Footer.vue'
 </script>
 
 <style>
-html, body, #app {
+html,
+body,
+#app {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Garante que o conteúdo não cause scroll */
+  overflow: hidden;
 }
 
 #app {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centraliza o conteúdo */
-  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  align-items: center;
+  justify-content: center;
 }
 </style>
