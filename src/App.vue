@@ -1,12 +1,12 @@
 <template>
-  <ChairBench />
+  <Bench />
   <Analytics />
   <Footer />
 </template>
 
 <script setup>
 import { Analytics } from '@vercel/analytics/vue';
-import ChairBench from './components/Bench.vue';
+import Bench from './components/Bench.vue';
 import Footer from './components/Footer.vue'
 </script>
 
