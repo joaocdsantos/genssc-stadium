@@ -1,13 +1,15 @@
 <template>
-  <Bench />
+  <!--<Bench />-->
+  <StadiumViewer/>
   <Analytics />
   <Footer />
 </template>
 
 <script setup>
 import { Analytics } from '@vercel/analytics/vue';
-import Bench from './components/Bench.vue';
+// import Bench from './components/Bench.vue';
 import Footer from './components/Footer.vue'
+import StadiumViewer from "./components/StadiumViewer.vue";
 </script>
 
 <style>

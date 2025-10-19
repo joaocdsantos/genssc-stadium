@@ -6,6 +6,7 @@
       <div class="image-container">
         <img src="../assets/gsc_logo_vector.png" alt="Logo vector Gens"/>
       </div>
+
       <input
           v-model="searchName"
           @input="searchSubject"
@@ -43,14 +44,11 @@
 </template>
 
 <script setup>
-import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import occupants from '../assets/data.json'
 import {onMounted, ref, useTemplateRef} from "vue";
 
 
 const searchName = ref('');
-const occupantData = ref([]);
 const chairMeshes = ref([]);
 const modalVisible = ref(false);
 const selectedChair = ref({})
@@ -62,6 +60,7 @@ onMounted(() => {
       initThreeJS()
     }
 )
+
 async function initThreeJS() {
   const occupantData = occupants;
   chairMeshes.value = [];
