@@ -62,7 +62,7 @@ export class ThreeService {
         const lightGrayColor = 0xCCCCCC;
 
         // seat creation factory
-        function createChair(x, y, z, material, chairInfo, onChairClick) {
+        function createChair(x, y, z, material, chairInfo) {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
