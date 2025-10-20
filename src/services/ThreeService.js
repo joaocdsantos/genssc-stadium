@@ -4,7 +4,6 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
 
 export class ThreeService {
-
     constructor(container, occupants = [], onSeatClick = () => {}) {
         this.container = container;
         this.occupants = occupants;
@@ -21,13 +20,12 @@ export class ThreeService {
         this._raf = null;
 
         // binds
-        this._onResize = this._onResize.bind(this);
-        this._onMouseClick = this._onMouseClick.bind(this);
+        this.onResize = this.onResize.bind(this);
+        this.onMouseClick = this.onMouseClick.bind(this);
     }
 
 
     init() {
-        const occupantData = this.occupants;
         this.chairMeshes = [];
 
         // Configuração básica
@@ -72,10 +70,8 @@ export class ThreeService {
             chair.userData = {...chairInfo, originalVisibility: true, originalMaterial: material};
 
             // Adicionar evento de clique
-            chair.onClick = () => {
-                onChairClick(chairInfo);
-                console.log(chair.userData);
-            };
+            chair.onClick = () => this.onSeatClick({...chair.userData})
+            console.log(chair.userData);
 
             // Verificar colisão com pilares e esconder a cadeira que colide
             const pillarCollision = isCollisionWithPillar(x, z);
@@ -311,7 +307,7 @@ export class ThreeService {
 
 
         // Configuração da animação
-        const animate= ()=> {
+        const animate = () => {
             this.controls.update();
             this.renderer.render(this.scene, this.camera);
             this._raf = requestAnimationFrame(animate);
@@ -321,17 +317,10 @@ export class ThreeService {
 
         //Listeners
         // Ajustar o renderizador ao tamanho da tela
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            controls.update();
-        });
+        window.addEventListener('resize', this.onResize);
         // Adiciona o listener para cliques do mouse
-        window.addEventListener('click', onMouseClick);
+        window.addEventListener('click', this.onMouseClick);
     }
-
-
 
     updateNames = () => {
         this.scene.traverse((object) => {
@@ -351,6 +340,7 @@ export class ThreeService {
             }
         });
     }
+
     /**
      * Mesma lógica do teu searchSubject original.
      * - repõe material/visibilidade originais
@@ -376,7 +366,7 @@ export class ThreeService {
                 String(chairInfo.nome).toLowerCase().includes(searchQuery)
             ) {
                 if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
-                mesh.material = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Amarelo
+                mesh.material = new THREE.MeshBasicMaterial({color: 0xffd700}); // Amarelo
                 hits++;
             }
         });
@@ -384,7 +374,7 @@ export class ThreeService {
     }
 
     // Eventos (iguais ao espírito do original)
-    _onResize() {
+    onResize() {
         if (!this.camera || !this.renderer) return;
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
@@ -393,7 +383,7 @@ export class ThreeService {
     }
 
     // Quando se clica na cadeira
-    _onMouseClick(event) {
+    onMouseClick(event) {
         // Raycast como no original (scene.children)
         const rect = this.renderer.domElement.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
@@ -413,8 +403,8 @@ export class ThreeService {
     // descartar geometrias e materiais
     dispose() {
         cancelAnimationFrame(this._raf);
-        window.removeEventListener('resize', this._onResize);
-        window.removeEventListener('click', this._onMouseClick);
+        window.removeEventListener('resize', this.onResize);
+        window.removeEventListener('click', this.onMouseClick);
 
         // dispose de geometrias/materiais
         this.scene?.traverse?.((obj) => {
