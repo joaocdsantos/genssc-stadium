@@ -317,7 +317,7 @@ export class ThreeService {
         const loop = () => {
             this.controls.update();
             this.renderer.render(this.scene, this.camera);
-            this._raf = requestAnimationFrame(animate);
+            this._raf = requestAnimationFrame(loop);
         }
         loop();
     }
