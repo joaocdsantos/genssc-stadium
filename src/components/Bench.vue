@@ -1,12 +1,20 @@
 <template>
   <div class="main-container">
+
+
+    <!-- 3D Scene - Three JS -->
     <div ref="threeContainer" class="three-container"></div>
 
+    <!-- Search -->
     <div class="search-container">
-      <div class="image-container">
-        <img src="../assets/gsc_logo_vector.png" alt="Logo vector Gens"/>
-      </div>
 
+      <!-- Logo -->
+      <!--TODO - check if logo was necessary there
+            <div class="image-container">
+              <img src="../assets/gsc_logo_vector.png" alt="Logo vector Gens"/>
+            </div>
+       -->
+      <!-- Search Input -->
       <input
           v-model="searchName"
           @input="searchSubject"
@@ -15,21 +23,14 @@
       >
     </div>
 
-    <!-- COPYRIGHTS -->
-    <div class="copyright-container">
-      Gens Sport Clube © 2024 <br>
-      Todos os direitos reservados
-    </div>
-
-
-    <!-- MODAL -->
+    <!-- Modal -->
     <div v-if="modalVisible" class="modal">
       <div class="modal-content">
         <div class="image-container">
-          <img src="../assets/logo.png" alt="Logo Gens"/>
+          <img src="../assets/logo.png" alt="Logótipo do Gens Sport Clube"/>
         </div>
-        <p class="padrinho-info">
-          <span class="padrinho-name">
+        <p class="sponsor-info">
+          <span class="sponsor-name">
         {{ selectedChair.nome }}
         <i class="fa fa-star"></i>
       </span>
@@ -57,17 +58,16 @@ const threeContainer = useTemplateRef('threeContainer')
 let threeInstance;
 
 onMounted(() => {
-     threeInstance = new ThreeService(
-         threeContainer.value,
-         occupants,
-         (seatInformation)=> {
-           selectedChair.value = seatInformation;
-           modalVisible.value = true;
-         },
-     );
+      threeInstance = new ThreeService(
+          threeContainer.value,
+          occupants,
+          (seatInformation) => {
+            selectedChair.value = seatInformation;
+            modalVisible.value = true;
+          },
+      );
       threeInstance.init();
-    }
-)
+    });
 
 onBeforeUnmount(() => {
   threeInstance?.dispose();
@@ -155,20 +155,20 @@ function closeModal() {
   position: relative;
 }
 
-.padrinho-info {
+.sponsor-info {
   font-weight: bold;
   font-size: 16px;
   margin: 10px 0;
 }
 
-.padrinho-name {
+.sponsor-name {
   font-weight: bold;
   color: #333;
   display: inline-flex;
   align-items: center;
 }
 
-.padrinho-name i {
+.sponsor-name i {
   color: gold;
   margin-left: 5px;
 }
@@ -189,27 +189,14 @@ function closeModal() {
   background-color: #45a049;
 }
 
-/* Estilo para a imagem dentro do modal */
 .image-container {
-  margin: 20px 0; /* Espaçamento em volta da imagem */
+  margin: 20px 0;
 }
 
 .image-container img {
-  width: 25%; /* Reduz a imagem para 25% da largura do modal */
-  height: auto; /* Mantém a proporção original da imagem */
-  display: block; /* Remove o espaço extra abaixo da imagem */
-  margin: 0 auto; /* Centraliza a imagem horizontalmente */
-}
-
-.copyright-container {
-  text-align: center;
-  font-family: 'Roboto', sans-serif;;
-  font-size: smaller;
-  color: grey;
-  position: fixed;
-  bottom: 0;
-  margin-bottom: 10px;
-  width: 100%;
-  background-color: black; /* Transparência para garantir que o texto seja visível sobre qualquer fundo */
+  width: 25%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 </style>

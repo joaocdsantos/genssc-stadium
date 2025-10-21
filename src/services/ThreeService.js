@@ -1,11 +1,12 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {COLORS} from "../constants/colors";
 
 
 export class ThreeService {
-
-    constructor(container, occupants = [], onSeatClick = () => {}) {
+    constructor(container, occupants = [], onSeatClick = () => {
+    }) {
         this.container = container;
         this.occupants = occupants;
         this.onSeatClick = onSeatClick;
@@ -21,13 +22,12 @@ export class ThreeService {
         this._raf = null;
 
         // binds
-        this._onResize = this._onResize.bind(this);
-        this._onMouseClick = this._onMouseClick.bind(this);
+        this.onResize = this.onResize.bind(this);
+        this.onMouseClick = this.onMouseClick.bind(this);
     }
 
 
     init() {
-        const occupantData = this.occupants;
         this.chairMeshes = [];
 
         // Configuração básica
@@ -38,15 +38,15 @@ export class ThreeService {
         this.container.appendChild(this.renderer.domElement);
 
         //adding lights
-        const ambientLight = new THREE.AmbientLight(0x404040);
+        const ambientLight = new THREE.AmbientLight(COLORS.ECLIPSE);
         this.scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        const directionalLight = new THREE.DirectionalLight(COLORS.WHITE, 0.5);
         this.scene.add(directionalLight);
 
         // creating materials for seats
-        const redMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-        const whiteMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-        const greenMaterial = new THREE.MeshBasicMaterial({color: 0x006400});
+        const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
+        const whiteMaterial = new THREE.MeshBasicMaterial({color: COLORS.WHITE});
+        const greenMaterial = new THREE.MeshBasicMaterial({color: COLORS.GREEN});
 
         // stadium parameters
         const rows = 6;
@@ -58,13 +58,10 @@ export class ThreeService {
         const stepHeight = 0.5;
         const zStart = 0;
 
-        //colors
-        const metalGrayColor = 0x555555;
-        const pillarColor = metalGrayColor;
-        const lightGrayColor = 0xCCCCCC;
+
 
         // seat creation factory
-        function createChair(x, y, z, material, chairInfo, onChairClick) {
+        function createChair(x, y, z, material, chairInfo) {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
@@ -72,10 +69,8 @@ export class ThreeService {
             chair.userData = {...chairInfo, originalVisibility: true, originalMaterial: material};
 
             // Adicionar evento de clique
-            chair.onClick = () => {
-                onChairClick(chairInfo);
-                console.log(chair.userData);
-            };
+            chair.onClick = () => this.onSeatClick({...chair.userData})
+            console.log(chair.userData);
 
             // Verificar colisão com pilares e esconder a cadeira que colide
             const pillarCollision = isCollisionWithPillar(x, z);
@@ -121,7 +116,7 @@ export class ThreeService {
         // Função para criar um degrau
         function createStep(width, depth, height, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: lightGrayColor});
+            const material = new THREE.MeshPhongMaterial({color: COLORS.LIGHT_GREY});
             const step = new THREE.Mesh(geometry, material);
             step.position.set(x, y, z);
             return step;
@@ -234,7 +229,7 @@ export class ThreeService {
         const coverThickness = 0.5;
 
         const coverGeometry = new THREE.BoxGeometry(coverWidth, coverThickness, coverDepth);
-        const coverMaterial = new THREE.MeshPhongMaterial({color: metalGrayColor});
+        const coverMaterial = new THREE.MeshPhongMaterial({color: COLORS.GREY_METAL});
         const cover = new THREE.Mesh(coverGeometry, coverMaterial);
 
         const coverHeight = 2.0;
@@ -249,13 +244,13 @@ export class ThreeService {
         // ADICIONAR PILARES
         const pillarHeight = rows * stepHeight + 0.5 + coverHeight;
 
-        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(greenPillar);
 
-        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(whitePillar);
 
-        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(redPillar);
 
         // Adicionar muro junto ao primeiro degrau
@@ -311,7 +306,7 @@ export class ThreeService {
 
 
         // Configuração da animação
-        const animate= ()=> {
+        const animate = () => {
             this.controls.update();
             this.renderer.render(this.scene, this.camera);
             this._raf = requestAnimationFrame(animate);
@@ -321,17 +316,10 @@ export class ThreeService {
 
         //Listeners
         // Ajustar o renderizador ao tamanho da tela
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            controls.update();
-        });
+        window.addEventListener('resize', this.onResize);
         // Adiciona o listener para cliques do mouse
-        window.addEventListener('click', onMouseClick);
+        window.addEventListener('click', this.onMouseClick);
     }
-
-
 
     updateNames = () => {
         this.scene.traverse((object) => {
@@ -351,6 +339,7 @@ export class ThreeService {
             }
         });
     }
+
     /**
      * Mesma lógica do teu searchSubject original.
      * - repõe material/visibilidade originais
@@ -376,7 +365,7 @@ export class ThreeService {
                 String(chairInfo.nome).toLowerCase().includes(searchQuery)
             ) {
                 if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
-                mesh.material = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Amarelo
+                mesh.material = new THREE.MeshBasicMaterial({color: COLORS.GOLD});
                 hits++;
             }
         });
@@ -384,7 +373,7 @@ export class ThreeService {
     }
 
     // Eventos (iguais ao espírito do original)
-    _onResize() {
+    onResize() {
         if (!this.camera || !this.renderer) return;
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
@@ -393,7 +382,7 @@ export class ThreeService {
     }
 
     // Quando se clica na cadeira
-    _onMouseClick(event) {
+    onMouseClick(event) {
         // Raycast como no original (scene.children)
         const rect = this.renderer.domElement.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
@@ -413,8 +402,8 @@ export class ThreeService {
     // descartar geometrias e materiais
     dispose() {
         cancelAnimationFrame(this._raf);
-        window.removeEventListener('resize', this._onResize);
-        window.removeEventListener('click', this._onMouseClick);
+        window.removeEventListener('resize', this.onResize);
+        window.removeEventListener('click', this.onMouseClick);
 
         // dispose de geometrias/materiais
         this.scene?.traverse?.((obj) => {
