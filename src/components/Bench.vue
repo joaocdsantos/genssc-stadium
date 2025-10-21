@@ -31,13 +31,13 @@
         </div>
         <p class="sponsor-info">
           <span class="sponsor-name">
-        {{ selectedChair.nome }}
+        {{ selectedChair.sponsor_name }}
         <i class="fa fa-star"></i>
       </span>
         </p>
-        <p>Secção: <strong>{{ selectedChair.seccao }} </strong></p>
-        <p>Fila: <strong>{{ selectedChair.fila }}</strong></p>
-        <p>Lugar: <strong>{{ selectedChair.lugar }}</strong></p>
+        <p>Secção: <strong>{{ selectedChair.section }} </strong></p>
+        <p>Fila: <strong>{{ selectedChair.row }}</strong></p>
+        <p>Lugar: <strong>{{ selectedChair.seat }}</strong></p>
         <button @click="closeModal" class="modal-close">OK</button>
       </div>
     </div>

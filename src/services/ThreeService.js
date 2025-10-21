@@ -1,14 +1,23 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {ChairModel} from "../models/ChairModel";
 import {COLORS, ROW_LETTERS, STADIUM} from "../constants/stadium";
 
 
 export class ThreeService {
-    constructor(container, occupants = [], onSeatClick = () => {
-    }) {
+    constructor(container, occupants = [], onSeatClick = () => {}) {
         this.container = container;
-        this.occupants = occupants;
+
+        //TODO - to check
+        // mapping original JSON key from Portuguese to English
+        this.occupants = occupants.map(seat => ({
+            section: seat.seccao,
+            row: seat.fila,
+            seat: seat.lugar,
+            sponsor_name: seat.nome,
+        }));
+
         this.onSeatClick = onSeatClick;
 
         // Three core
@@ -26,10 +35,8 @@ export class ThreeService {
         this.onMouseClick = this.onMouseClick.bind(this);
     }
 
-
     init() {
         this.setupScene();
-
 
         // creating materials for seats
         const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
@@ -38,12 +45,12 @@ export class ThreeService {
 
 
         // seat creation factory
-        const createChair = (x, y, z, material, chairInfo) => {
+        const createChair = (x, y, z, material, chairModel) => {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
             chair.rotation.y = Math.PI;
-            chair.userData = {...chairInfo, originalVisibility: true, originalMaterial: material};
+            chair.userData = {...chairModel, originalVisibility: true, originalMaterial: material};
 
             // Adicionar evento de clique
             chair.onClick = () => this.onSeatClick({...chair.userData})
@@ -53,7 +60,7 @@ export class ThreeService {
             const pillarCollision = isCollisionWithPillar(x, z);
             if (pillarCollision) {
                 chair.visible = false;
-                chair.userData.originalVisibility = false; // Atualiza a visibilidade original se a cadeira estiver oculta
+                chair.userData.originalVisibility = false;
             }
             return chair;
         }
@@ -137,13 +144,15 @@ export class ThreeService {
             for (let j = 0; j < STADIUM.GREEN_COLUMNS; j++) {
                 const chairX = greenStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, greenMaterial,
-                    {
-                        seccao: 'verde',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j),
-                        nome: ``
-                    },
+
+                const chairModel = new ChairModel({
+                    section: 'verde',
+                    row: getLetterForRow(i),
+                    seat: getNumberForColumn(j),
+                    sponsor_name: ''
+                });
+
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, greenMaterial, chairModel,
                     () => {
                         selectedChair.value = {...chair.userData};
                         modalVisible.value = true;
@@ -156,12 +165,15 @@ export class ThreeService {
             for (let j = 0; j < STADIUM.WHITE_COLUMNS; j++) {
                 const chairX = whiteStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, whiteMaterial, {
-                        seccao: 'branca',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j + 1),
-                        nome: ``
-                    },
+
+                const chairModel = new ChairModel({
+                    section: 'branca',
+                    row: getLetterForRow(i),
+                    seat: getNumberForColumn(j + 1),
+                    sponsor_name: ''
+                });
+
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, whiteMaterial, chairModel,
                     () => {
                         selectedChair.value = {...chair.userData};
                         modalVisible.value = true;
@@ -169,18 +181,19 @@ export class ThreeService {
                 this.chairMeshes.push(chair);
                 this.scene.add(chair);
             }
-
             // Adicionar cadeiras vermelhas (22x6)
             for (let j = 0; j < STADIUM.RED_COLUMNS; j++) {
                 const chairX = redStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, redMaterial,
-                    {
-                        seccao: 'vermelha',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j),
-                        nome: ``
-                    },
+
+                const chairModel = new ChairModel({
+                    section: 'vermelha',
+                    row: getLetterForRow(i),
+                    seat: getNumberForColumn(j),
+                    sponsor_name: ''
+                });
+
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, redMaterial, chairModel,
                     () => {
                         selectedChair.value = {...chair.userData};
                         modalVisible.value = true;
@@ -294,7 +307,7 @@ export class ThreeService {
     }
 
     /**
-     * Render & lights configuration
+     * Renderer & lights configuration
      */
     setupScene() {
         // configs
@@ -310,18 +323,18 @@ export class ThreeService {
 
     updateNames = () => {
         this.scene.traverse((object) => {
-            if (object instanceof THREE.Mesh && object.userData.seccao) {
+            if (object instanceof THREE.Mesh && object.userData.section) {
                 const chairInfo = object.userData;
 
                 // Procure por um ocupante correspondente no JSON
                 const occupant = this.occupants.find(data =>
-                    data.seccao === chairInfo.seccao &&
-                    data.fila === chairInfo.fila &&
-                    String(data.lugar) === String(chairInfo.lugar)
+                    data.section === chairInfo.section &&
+                    data.row === chairInfo.row &&
+                    String(data.seat) === String(chairInfo.seat)
                 );
                 // Se encontrar um ocupante, atualize o nome da cadeira
                 if (occupant) {
-                    object.userData.nome = occupant.nome;
+                    object.userData.sponsor_name = occupant.sponsor_name;
                 }
             }
         });
@@ -348,8 +361,8 @@ export class ThreeService {
             const chairInfo = mesh.userData;
             if (
                 chairInfo &&
-                chairInfo.nome &&
-                String(chairInfo.nome).toLowerCase().includes(searchQuery)
+                chairInfo.sponsor_name &&
+                String(chairInfo.sponsor_name).toLowerCase().includes(searchQuery)
             ) {
                 if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
                 mesh.material = new THREE.MeshBasicMaterial({color: COLORS.GOLD});
