@@ -5,8 +5,7 @@ import {COLORS} from "../constants/colors";
 
 
 export class ThreeService {
-    constructor(container, occupants = [], onSeatClick = () => {
-    }) {
+    constructor(container, occupants = [], onSeatClick = () => {}) {
         this.container = container;
         this.occupants = occupants;
         this.onSeatClick = onSeatClick;
@@ -61,7 +60,7 @@ export class ThreeService {
 
 
         // seat creation factory
-        function createChair(x, y, z, material, chairInfo) {
+        const createChair = (x, y, z, material, chairInfo)=> {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
@@ -78,7 +77,6 @@ export class ThreeService {
                 chair.visible = false;
                 chair.userData.originalVisibility = false; // Atualiza a visibilidade original se a cadeira estiver oculta
             }
-
             return chair;
         }
 
@@ -372,7 +370,7 @@ export class ThreeService {
         return hits;
     }
 
-    // Eventos (iguais ao espírito do original)
+    // Eventos
     onResize() {
         if (!this.camera || !this.renderer) return;
         this.camera.aspect = window.innerWidth / window.innerHeight;
