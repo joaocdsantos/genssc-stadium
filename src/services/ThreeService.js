@@ -38,14 +38,41 @@ export class ThreeService {
 
     init() {
         this.setupScene();
+        this.buildStadiumStructure();
+        this.setupCameraAndControls()
+        this.animate();
 
+        // listeners
+        window.addEventListener('resize', this.onResize);
+        window.addEventListener('click', this.onMouseClick);
+    }
+
+    /**
+     * Renderer & lights configuration
+     */
+    setupScene() {
+        // configs
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({antialias: true});
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.container.appendChild(this.renderer.domElement);
+        // lights
+        this.scene.add(new THREE.AmbientLight(COLORS.ECLIPSE));
+        this.scene.add(new THREE.DirectionalLight(COLORS.WHITE, 0.5));
+    }
+    buildStadiumStructure(){
         // creating materials for seats
         const redMaterial = MaterialFactory.basic(COLORS.RED);
         const whiteMaterial = MaterialFactory.basic(COLORS.WHITE);
         const greenMaterial = MaterialFactory.basic(COLORS.GREEN);
 
+        // starting seat positions
+        const redStartX = 0;
+        const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+        const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
 
-        // seat creation factory
+        // build stadium seats
         const createChair = (x, y, z, material, chairModel) => {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
@@ -66,7 +93,7 @@ export class ThreeService {
             return chair;
         }
 
-        // Função para criar um pilar
+        // build stadium pillars
         function createPillar(x, y, z, height, color) {
             const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
             const material = new THREE.MeshBasicMaterial({color: color});
@@ -75,7 +102,7 @@ export class ThreeService {
             return pillar;
         }
 
-        // Função para verificar colisão com pilares
+        // check collision between seats and pillars
         function isCollisionWithPillar(chairX, chairZ) {
             const pillarPositions = [
                 {x: greenPillarX, z: STADIUM.Z_START + 5},
@@ -97,7 +124,7 @@ export class ThreeService {
             return false;
         }
 
-        // Função para criar um degrau
+        // build stadium step
         function createStep(width, depth, height, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
             const material = new THREE.MeshPhongMaterial({color: COLORS.LIGHT_GREY});
@@ -106,7 +133,7 @@ export class ThreeService {
             return step;
         }
 
-        // Função para criar um muro
+        // build stadium wall
         function createWall(width, height, depth, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
             const material = new THREE.MeshPhongMaterial({color: greenMaterial});
@@ -125,14 +152,9 @@ export class ThreeService {
             return (STADIUM.GREEN_COLUMNS - colIndex) || '';
         }
 
-        // Definir posições de início das cadeiras
-        const redStartX = 0;
-        const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
-        const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
-
-        // Largura total dos degraus
+        // steps total width
         const totalWidthDegree = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING + 2 * STADIUM.GAP_BETWEEN_GROUPS;
-        // Centro dos degraus
+        // steps center
         const stepCenterX = (redStartX + greenStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING) / 2;
 
         // Definir posições dos pilares
@@ -254,72 +276,50 @@ export class ThreeService {
         // Ajustar a posição do muro para centralizá-lo
         const wall = createWall(wallWidth, wallHeight, wallThickness, stepCenterX, wallY, wallZ);
         this.scene.add(wall);
-
+    }
+    setupCameraAndControls(){
         // Configurar a câmera para mostrar a bancada de frente
+        const totalWidth = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING;
         const totalHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT;
         const totalDepth = STADIUM.ROWS * STADIUM.SPACING;
-        const centerX = totalWidthDegree / 2;
+
+        const centerX = totalWidth / 2;
         const centerY = totalHeight / 2;
         const centerZ = totalDepth / 2;
 
-        // Configurar a câmera para mostrar a bancada do lado oposto
         const cameraDistance = Math.max(
-            totalWidthDegree / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
+            totalWidth / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
             totalHeight / (2 * Math.tan(this.camera.fov * Math.PI / 360))
         );
 
         this.camera.position.set(centerX, centerY + 15, centerZ - cameraDistance);
         this.camera.lookAt(new THREE.Vector3(centerX, centerY, centerZ));
 
-        // Configurar os controles
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.target.set(centerX, centerY, centerZ);
-        this.controls.enablePan = true;
-        this.controls.enableZoom = true;
-        this.controls.enableRotate = true;
-        this.controls.panSpeed = 0.5;
-        this.controls.zoomSpeed = 1.0;
-        this.controls.rotateSpeed = 0.5;
-        this.controls.minDistance = 25;
-        this.controls.maxDistance = 40;
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-
-        // // Limite rotação vertical:
-        this.controls.minPolarAngle = Math.PI / 4; // 45 graus
-        this.controls.maxPolarAngle = Math.PI / 2; // 90 graus
-        //
-        // // Limite rotação horizontal (ajustado para 180 graus):
-        this.controls.minAzimuthAngle = Math.PI * 7 / 8; // 157.5 graus
-        this.controls.maxAzimuthAngle = (Math.PI * 7 / 8) * -1; // 202.5 graus
-
-
-        // Configuração da animação
-        const animate = () => {
+        Object.assign(this.controls, { target: new THREE.Vector3(centerX, centerY, centerZ),
+            enablePan: true,
+            enableZoom: true,
+            enableRotate: true,
+            panSpeed: 0.5,
+            zoomSpeed: 1.0,
+            rotateSpeed: 0.5,
+            minDistance: 25,
+            maxDistance: 40,
+            enableDamping: true,
+            dampingFactor: 0.05,
+            minPolarAngle: Math.PI / 4,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: (Math.PI * 7 / 8),
+            maxAzimuthAngle: -(Math.PI * 7 / 8),
+        })
+    }
+    animate(){
+        const loop = () => {
             this.controls.update();
             this.renderer.render(this.scene, this.camera);
             this._raf = requestAnimationFrame(animate);
         }
-        animate();
-
-        // listeners
-        window.addEventListener('resize', this.onResize);
-        window.addEventListener('click', this.onMouseClick);
-    }
-
-    /**
-     * Renderer & lights configuration
-     */
-    setupScene() {
-        // configs
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.container.appendChild(this.renderer.domElement);
-        // lights
-        this.scene.add(new THREE.AmbientLight(COLORS.ECLIPSE));
-        this.scene.add(new THREE.DirectionalLight(COLORS.WHITE, 0.5));
+        loop();
     }
 
     updateNames = () => {
@@ -340,16 +340,10 @@ export class ThreeService {
             }
         });
     }
-
-    /**
-     * Mesma lógica do teu searchSubject original.
-     * - repõe material/visibilidade originais
-     * - destaca em amarelo as cadeiras cujo nome contém a query
-     */
     highlightByName(query) {
         const searchQuery = (query || '').trim().toLowerCase();
 
-        // Restaurar todas as cadeiras
+        // restore all seats
         this.chairMeshes.forEach((mesh) => {
             mesh.material = mesh.userData.originalMaterial;
             mesh.visible = mesh.userData.originalVisibility !== false;
@@ -372,8 +366,6 @@ export class ThreeService {
         });
         return hits;
     }
-
-    // Eventos
     onResize() {
         if (!this.camera || !this.renderer) return;
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -381,10 +373,8 @@ export class ThreeService {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.controls?.update?.();
     }
-
-    // Quando se clica na cadeira
     onMouseClick(event) {
-        // Raycast como no original (scene.children)
+        // Raycast
         const rect = this.renderer.domElement.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
         const y = -((event.clientY - rect.top) / rect.height * 2 - 1);
@@ -399,8 +389,6 @@ export class ThreeService {
             if (object.onClick) object.onClick();
         }
     }
-
-    // descartar geometrias e materiais
     dispose() {
         cancelAnimationFrame(this._raf);
         window.removeEventListener('resize', this.onResize);
