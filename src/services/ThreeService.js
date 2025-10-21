@@ -1,10 +1,12 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {COLORS} from "../constants/colors";
 
 
 export class ThreeService {
-    constructor(container, occupants = [], onSeatClick = () => {}) {
+    constructor(container, occupants = [], onSeatClick = () => {
+    }) {
         this.container = container;
         this.occupants = occupants;
         this.onSeatClick = onSeatClick;
@@ -36,15 +38,15 @@ export class ThreeService {
         this.container.appendChild(this.renderer.domElement);
 
         //adding lights
-        const ambientLight = new THREE.AmbientLight(0x404040);
+        const ambientLight = new THREE.AmbientLight(COLORS.ECLIPSE);
         this.scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        const directionalLight = new THREE.DirectionalLight(COLORS.WHITE, 0.5);
         this.scene.add(directionalLight);
 
         // creating materials for seats
-        const redMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-        const whiteMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-        const greenMaterial = new THREE.MeshBasicMaterial({color: 0x006400});
+        const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
+        const whiteMaterial = new THREE.MeshBasicMaterial({color: COLORS.WHITE});
+        const greenMaterial = new THREE.MeshBasicMaterial({color: COLORS.GREEN});
 
         // stadium parameters
         const rows = 6;
@@ -56,10 +58,7 @@ export class ThreeService {
         const stepHeight = 0.5;
         const zStart = 0;
 
-        //colors
-        const metalGrayColor = 0x555555;
-        const pillarColor = metalGrayColor;
-        const lightGrayColor = 0xCCCCCC;
+
 
         // seat creation factory
         function createChair(x, y, z, material, chairInfo) {
@@ -117,7 +116,7 @@ export class ThreeService {
         // Função para criar um degrau
         function createStep(width, depth, height, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: lightGrayColor});
+            const material = new THREE.MeshPhongMaterial({color: COLORS.LIGHT_GREY});
             const step = new THREE.Mesh(geometry, material);
             step.position.set(x, y, z);
             return step;
@@ -230,7 +229,7 @@ export class ThreeService {
         const coverThickness = 0.5;
 
         const coverGeometry = new THREE.BoxGeometry(coverWidth, coverThickness, coverDepth);
-        const coverMaterial = new THREE.MeshPhongMaterial({color: metalGrayColor});
+        const coverMaterial = new THREE.MeshPhongMaterial({color: COLORS.GREY_METAL});
         const cover = new THREE.Mesh(coverGeometry, coverMaterial);
 
         const coverHeight = 2.0;
@@ -245,13 +244,13 @@ export class ThreeService {
         // ADICIONAR PILARES
         const pillarHeight = rows * stepHeight + 0.5 + coverHeight;
 
-        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(greenPillar);
 
-        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(whitePillar);
 
-        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, pillarColor);
+        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(redPillar);
 
         // Adicionar muro junto ao primeiro degrau
@@ -366,7 +365,7 @@ export class ThreeService {
                 String(chairInfo.nome).toLowerCase().includes(searchQuery)
             ) {
                 if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
-                mesh.material = new THREE.MeshBasicMaterial({color: 0xffd700}); // Amarelo
+                mesh.material = new THREE.MeshBasicMaterial({color: COLORS.GOLD});
                 hits++;
             }
         });
