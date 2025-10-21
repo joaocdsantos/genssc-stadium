@@ -1,11 +1,12 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {COLORS} from "../constants/colors";
+import {COLORS, ROW_LETTERS, STADIUM} from "../constants/stadium";
 
 
 export class ThreeService {
-    constructor(container, occupants = [], onSeatClick = () => {}) {
+    constructor(container, occupants = [], onSeatClick = () => {
+    }) {
         this.container = container;
         this.occupants = occupants;
         this.onSeatClick = onSeatClick;
@@ -27,40 +28,17 @@ export class ThreeService {
 
 
     init() {
-        this.chairMeshes = [];
+        this.setupScene();
 
-        // Configuração básica
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.container.appendChild(this.renderer.domElement);
-
-        //adding lights
-        const ambientLight = new THREE.AmbientLight(COLORS.ECLIPSE);
-        this.scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(COLORS.WHITE, 0.5);
-        this.scene.add(directionalLight);
 
         // creating materials for seats
         const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
         const whiteMaterial = new THREE.MeshBasicMaterial({color: COLORS.WHITE});
         const greenMaterial = new THREE.MeshBasicMaterial({color: COLORS.GREEN});
 
-        // stadium parameters
-        const rows = 6;
-        const greenCols = 22;
-        const whiteCols = 21;
-        const redCols = 22;
-        const spacing = 1.0;
-        const gapBetweenGroups = 1.5 * spacing;
-        const stepHeight = 0.5;
-        const zStart = 0;
-
-
 
         // seat creation factory
-        const createChair = (x, y, z, material, chairInfo)=> {
+        const createChair = (x, y, z, material, chairInfo) => {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
@@ -92,9 +70,9 @@ export class ThreeService {
         // Função para verificar colisão com pilares
         function isCollisionWithPillar(chairX, chairZ) {
             const pillarPositions = [
-                {x: greenPillarX, z: zStart + 5},
-                {x: whitePillarX, z: zStart + 5},
-                {x: redPillarX, z: zStart + 5}
+                {x: greenPillarX, z: STADIUM.Z_START + 5},
+                {x: whitePillarX, z: STADIUM.Z_START + 5},
+                {x: redPillarX, z: STADIUM.Z_START + 5}
             ];
 
             const chairRadius = 0.25;
@@ -131,36 +109,35 @@ export class ThreeService {
 
         // Função auxiliar para obter a letra baseada na linha
         function getLetterForRow(rowIndex) {
-            const letters = ['F', 'E', 'D', 'C', 'B', 'A'];
-            return letters[rowIndex] || '';
+            return ROW_LETTERS[rowIndex] || '';
         }
 
         // Função auxiliar para obter a numeração correta
         function getNumberForColumn(colIndex) {
-            return (greenCols - colIndex) || '';
+            return (STADIUM.GREEN_COLUMNS - colIndex) || '';
         }
 
         // Definir posições de início das cadeiras
         const redStartX = 0;
-        const whiteStartX = redStartX + greenCols * spacing + gapBetweenGroups;
-        const greenStartX = whiteStartX + whiteCols * spacing + gapBetweenGroups;
+        const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+        const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
 
         // Largura total dos degraus
-        const totalWidthDegree = (redCols + whiteCols + greenCols) * spacing + 2 * gapBetweenGroups;
+        const totalWidthDegree = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING + 2 * STADIUM.GAP_BETWEEN_GROUPS;
         // Centro dos degraus
-        const stepCenterX = (redStartX + greenStartX + greenCols * spacing) / 2;
+        const stepCenterX = (redStartX + greenStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING) / 2;
 
         // Definir posições dos pilares
-        const greenPillarX = greenStartX + 10 * spacing;
-        const whitePillarX = whiteStartX + 10 * spacing;
-        const redPillarX = redStartX + 11 * spacing;
+        const greenPillarX = greenStartX + 10 * STADIUM.SPACING;
+        const whitePillarX = whiteStartX + 10 * STADIUM.SPACING;
+        const redPillarX = redStartX + 11 * STADIUM.SPACING;
 
-        for (let i = 0; i < rows; i++) {
+        for (let i = 0; i < STADIUM.ROWS; i++) {
             // Adicionar cadeiras Verdes (22x6)
-            for (let j = 0; j < greenCols; j++) {
-                const chairX = greenStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, greenMaterial,
+            for (let j = 0; j < STADIUM.GREEN_COLUMNS; j++) {
+                const chairX = greenStartX + j * STADIUM.SPACING;
+                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, greenMaterial,
                     {
                         seccao: 'verde',
                         fila: getLetterForRow(i),
@@ -176,10 +153,10 @@ export class ThreeService {
                 this.scene.add(chair);
             }
             // Adicionar cadeiras brancas (21x6)
-            for (let j = 0; j < whiteCols; j++) {
-                const chairX = whiteStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, whiteMaterial, {
+            for (let j = 0; j < STADIUM.WHITE_COLUMNS; j++) {
+                const chairX = whiteStartX + j * STADIUM.SPACING;
+                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, whiteMaterial, {
                         seccao: 'branca',
                         fila: getLetterForRow(i),
                         lugar: getNumberForColumn(j + 1),
@@ -194,10 +171,10 @@ export class ThreeService {
             }
 
             // Adicionar cadeiras vermelhas (22x6)
-            for (let j = 0; j < redCols; j++) {
-                const chairX = redStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, redMaterial,
+            for (let j = 0; j < STADIUM.RED_COLUMNS; j++) {
+                const chairX = redStartX + j * STADIUM.SPACING;
+                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
+                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, redMaterial,
                     {
                         seccao: 'vermelha',
                         fila: getLetterForRow(i),
@@ -215,15 +192,15 @@ export class ThreeService {
         this.updateNames()
         // ADICIONAR DEGRAUS
         const extraSteps = 3;
-        for (let i = -extraSteps; i < rows; i++) {
+        for (let i = -extraSteps; i < STADIUM.ROWS; i++) {
             const extraStepLength = 1.0;
-            const step = createStep(totalWidthDegree + 2 * extraStepLength, spacing, stepHeight, stepCenterX, i * stepHeight - stepHeight / 2, zStart + i * spacing);
+            const step = createStep(totalWidthDegree + 2 * extraStepLength, STADIUM.SPACING, STADIUM.STEP_HEIGHT, stepCenterX, i * STADIUM.STEP_HEIGHT - STADIUM.STEP_HEIGHT / 2, STADIUM.Z_START + i * STADIUM.SPACING);
             this.scene.add(step);
         }
 
         // ADICIONAR DEGRAUS COBERTURA
         const coverWidth = totalWidthDegree;
-        const coverDepth = rows * spacing;
+        const coverDepth = STADIUM.ROWS * STADIUM.SPACING;
         const coverThickness = 0.5;
 
         const coverGeometry = new THREE.BoxGeometry(coverWidth, coverThickness, coverDepth);
@@ -234,28 +211,28 @@ export class ThreeService {
 
         cover.position.set(
             stepCenterX,
-            rows * stepHeight + 0.5 + coverHeight + coverThickness / 2,
-            zStart + (rows * spacing) / 2 - spacing / 2
+            STADIUM.ROWS * STADIUM.STEP_HEIGHT + 0.5 + coverHeight + coverThickness / 2,
+            STADIUM.Z_START + (STADIUM.ROWS * STADIUM.SPACING) / 2 - STADIUM.SPACING / 2
         );
         this.scene.add(cover);
 
         // ADICIONAR PILARES
-        const pillarHeight = rows * stepHeight + 0.5 + coverHeight;
+        const pillarHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT + 0.5 + coverHeight;
 
-        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
+        const greenPillar = createPillar(greenPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(greenPillar);
 
-        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
+        const whitePillar = createPillar(whitePillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(whitePillar);
 
-        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
+        const redPillar = createPillar(redPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(redPillar);
 
         // Adicionar muro junto ao primeiro degrau
         const wallHeight = 2;
         const wallThickness = 0.2;
-        const wallY = -extraSteps * stepHeight - wallHeight / 2;
-        const wallZ = -extraSteps - spacing / 2;
+        const wallY = -extraSteps * STADIUM.STEP_HEIGHT - wallHeight / 2;
+        const wallZ = -extraSteps - STADIUM.SPACING / 2;
 
         // Definir a largura do muro igual ao comprimento dos degraus prolongados
         const wallWidth = totalWidthDegree + 2;
@@ -265,8 +242,8 @@ export class ThreeService {
         this.scene.add(wall);
 
         // Configurar a câmera para mostrar a bancada de frente
-        const totalHeight = rows * stepHeight;
-        const totalDepth = rows * spacing;
+        const totalHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT;
+        const totalDepth = STADIUM.ROWS * STADIUM.SPACING;
         const centerX = totalWidthDegree / 2;
         const centerY = totalHeight / 2;
         const centerZ = totalDepth / 2;
@@ -311,12 +288,24 @@ export class ThreeService {
         }
         animate();
 
-
-        //Listeners
-        // Ajustar o renderizador ao tamanho da tela
+        // listeners
         window.addEventListener('resize', this.onResize);
-        // Adiciona o listener para cliques do mouse
         window.addEventListener('click', this.onMouseClick);
+    }
+
+    /**
+     * Render & lights configuration
+     */
+    setupScene() {
+        // configs
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({antialias: true});
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.container.appendChild(this.renderer.domElement);
+        // lights
+        this.scene.add(new THREE.AmbientLight(COLORS.ECLIPSE));
+        this.scene.add(new THREE.DirectionalLight(COLORS.WHITE, 0.5));
     }
 
     updateNames = () => {
