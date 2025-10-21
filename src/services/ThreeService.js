@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
 import {COLORS, ROW_LETTERS, STADIUM} from "../constants/stadium";
+import { MaterialFactory } from "../factories/threeFactories"
 
 
 export class ThreeService {
@@ -39,9 +40,9 @@ export class ThreeService {
         this.setupScene();
 
         // creating materials for seats
-        const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
-        const whiteMaterial = new THREE.MeshBasicMaterial({color: COLORS.WHITE});
-        const greenMaterial = new THREE.MeshBasicMaterial({color: COLORS.GREEN});
+        const redMaterial = MaterialFactory.basic(COLORS.RED);
+        const whiteMaterial = MaterialFactory.basic(COLORS.WHITE);
+        const greenMaterial = MaterialFactory.basic(COLORS.GREEN);
 
 
         // seat creation factory
