@@ -1,17 +1,15 @@
 <template>
   <div class="main-container">
 
-
     <!-- 3D Scene - Three JS -->
     <div ref="threeContainer" class="three-container"></div>
 
     <!-- Search -->
     <div class="search-container">
-
       <!-- Logo -->
       <!--TODO - check if logo was necessary there
             <div class="image-container">
-              <img src="../assets/gsc_logo_vector.png" alt="Logo vector Gens"/>
+              <img src="../assets/gsc_logo_vector.png" alt="Logotipo do Gens Sport Clube"/>
             </div>
        -->
       <!-- Search Input -->
@@ -27,7 +25,7 @@
     <div v-if="modalVisible" class="modal">
       <div class="modal-content">
         <div class="image-container">
-          <img src="../assets/logo.png" alt="Logótipo do Gens Sport Clube"/>
+          <img src="../assets/logo.png" alt="Logotipo do Gens Sport Clube"/>
         </div>
         <p class="sponsor-info">
           <span class="sponsor-name">

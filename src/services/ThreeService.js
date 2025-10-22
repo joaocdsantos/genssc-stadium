@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
 import {COLORS, ROW_LETTERS, STADIUM} from "../constants/stadium";
-import { MaterialFactory } from "../factories/threeFactories"
+import { MaterialFactory } from "../factories/ThreeFactories"
 
 
 export class ThreeService {
@@ -80,11 +80,11 @@ export class ThreeService {
             chair.rotation.y = Math.PI;
             chair.userData = {...chairModel, originalVisibility: true, originalMaterial: material};
 
-            // Adicionar evento de clique
+            // click event
             chair.onClick = () => this.onSeatClick({...chair.userData})
             console.log(chair.userData);
 
-            // Verificar colisão com pilares e esconder a cadeira que colide
+            // check if seat collide with pillars, and hide it
             const pillarCollision = isCollisionWithPillar(x, z);
             if (pillarCollision) {
                 chair.visible = false;
@@ -142,12 +142,12 @@ export class ThreeService {
             return wall;
         }
 
-        // Função auxiliar para obter a letra baseada na linha
+        // get letter based on row
         function getLetterForRow(rowIndex) {
             return ROW_LETTERS[rowIndex] || '';
         }
 
-        // Função auxiliar para obter a numeração correta
+        // get number seat
         function getNumberForColumn(colIndex) {
             return (STADIUM.GREEN_COLUMNS - colIndex) || '';
         }
@@ -157,13 +157,13 @@ export class ThreeService {
         // steps center
         const stepCenterX = (redStartX + greenStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING) / 2;
 
-        // Definir posições dos pilares
+        // pillar positions
         const greenPillarX = greenStartX + 10 * STADIUM.SPACING;
         const whitePillarX = whiteStartX + 10 * STADIUM.SPACING;
         const redPillarX = redStartX + 11 * STADIUM.SPACING;
 
         for (let i = 0; i < STADIUM.ROWS; i++) {
-            // Adicionar cadeiras Verdes (22x6)
+            // add green seats (22x6)
             for (let j = 0; j < STADIUM.GREEN_COLUMNS; j++) {
                 const chairX = greenStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
@@ -184,7 +184,7 @@ export class ThreeService {
                 this.chairMeshes.push(chair);
                 this.scene.add(chair);
             }
-            // Adicionar cadeiras brancas (21x6)
+            // add white seats (21x6)
             for (let j = 0; j < STADIUM.WHITE_COLUMNS; j++) {
                 const chairX = whiteStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
@@ -204,7 +204,7 @@ export class ThreeService {
                 this.chairMeshes.push(chair);
                 this.scene.add(chair);
             }
-            // Adicionar cadeiras vermelhas (22x6)
+            // add red seats (22x6)
             for (let j = 0; j < STADIUM.RED_COLUMNS; j++) {
                 const chairX = redStartX + j * STADIUM.SPACING;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
@@ -226,7 +226,7 @@ export class ThreeService {
             }
         }
         this.updateNames()
-        // ADICIONAR DEGRAUS
+        // add steps
         const extraSteps = 3;
         for (let i = -extraSteps; i < STADIUM.ROWS; i++) {
             const extraStepLength = 1.0;
@@ -234,7 +234,7 @@ export class ThreeService {
             this.scene.add(step);
         }
 
-        // ADICIONAR DEGRAUS COBERTURA
+        // add cover
         const coverWidth = totalWidthDegree;
         const coverDepth = STADIUM.ROWS * STADIUM.SPACING;
         const coverThickness = 0.5;
@@ -252,7 +252,7 @@ export class ThreeService {
         );
         this.scene.add(cover);
 
-        // ADICIONAR PILARES
+        // add pillars
         const pillarHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT + 0.5 + coverHeight;
 
         const greenPillar = createPillar(greenPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
@@ -264,21 +264,21 @@ export class ThreeService {
         const redPillar = createPillar(redPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
         this.scene.add(redPillar);
 
-        // Adicionar muro junto ao primeiro degrau
+        // add wall beside first step
         const wallHeight = 2;
         const wallThickness = 0.2;
         const wallY = -extraSteps * STADIUM.STEP_HEIGHT - wallHeight / 2;
         const wallZ = -extraSteps - STADIUM.SPACING / 2;
 
-        // Definir a largura do muro igual ao comprimento dos degraus prolongados
+        // define wall width equals to steps length
         const wallWidth = totalWidthDegree + 2;
 
-        // Ajustar a posição do muro para centralizá-lo
+        // adjust wall position for centralization
         const wall = createWall(wallWidth, wallHeight, wallThickness, stepCenterX, wallY, wallZ);
         this.scene.add(wall);
     }
     setupCameraAndControls(){
-        // Configurar a câmera para mostrar a bancada de frente
+        // configure camera to show bench on front
         const totalWidth = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING;
         const totalHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT;
         const totalDepth = STADIUM.ROWS * STADIUM.SPACING;
@@ -327,13 +327,13 @@ export class ThreeService {
             if (object instanceof THREE.Mesh && object.userData.section) {
                 const chairInfo = object.userData;
 
-                // Procure por um ocupante correspondente no JSON
+                // Search for correspondent sponsor name on JSON
                 const occupant = this.occupants.find(data =>
                     data.section === chairInfo.section &&
                     data.row === chairInfo.row &&
                     String(data.seat) === String(chairInfo.seat)
                 );
-                // Se encontrar um ocupante, atualize o nome da cadeira
+                // If founded, update chair sponsor name
                 if (occupant) {
                     object.userData.sponsor_name = occupant.sponsor_name;
                 }
@@ -394,7 +394,7 @@ export class ThreeService {
         window.removeEventListener('resize', this.onResize);
         window.removeEventListener('click', this.onMouseClick);
 
-        // dispose de geometrias/materiais
+        // dispose of geometries/materials
         this.scene?.traverse?.((obj) => {
             if (obj.isMesh) {
                 obj.geometry?.dispose?.();
