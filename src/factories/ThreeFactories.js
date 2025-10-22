@@ -1,5 +1,18 @@
 import * as THREE from 'three';
 
+export const ConfigsFactory= {
+    scene() {
+        return new THREE.Scene()
+    },
+    perspectiveCamera() {
+       return  new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    },
+    webGlRenderer(){
+        const renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        return renderer;
+    }
+}
 export const MaterialFactory = {
     basic(color){
         return new THREE.MeshBasicMaterial({color: color});

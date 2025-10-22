@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
 import {COLORS, LIGHT, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
-import {LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
+import {ConfigsFactory, LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
 
 
 export class ThreeService {
@@ -52,10 +52,9 @@ export class ThreeService {
      */
     setupScene() {
         // configs
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.scene = ConfigsFactory.scene()
+        this.camera = ConfigsFactory.perspectiveCamera()
+        this.renderer = ConfigsFactory.webGlRenderer()
         this.container.appendChild(this.renderer.domElement);
 
         // lights
