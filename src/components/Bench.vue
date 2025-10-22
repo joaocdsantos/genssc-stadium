@@ -13,12 +13,20 @@
             </div>
        -->
       <!-- Search Input -->
-      <input
+      <!-- <input
           v-model="searchName"
           @input="searchSubject"
           placeholder="Pesquisar nome"
-          class="search-input"
-      >
+          class="search-input">
+      -->
+      <select v-model="searchName"
+              class="search-input"
+              @change="searchSubject">
+        <option value="">Selecione um nome</option>
+        <option v-for="name in uniqueNames" :key="name" :value="name">
+          {{ name }}
+        </option>
+      </select>
     </div>
 
     <!-- Modal -->
@@ -43,15 +51,18 @@
 </template>
 
 <script setup>
-import {ref, onMounted, useTemplateRef, onBeforeUnmount} from 'vue';
+import {ref, onMounted, useTemplateRef, onBeforeUnmount, computed } from 'vue';
+import {ThreeService} from '../services/ThreeService';
 import occupants from '../assets/data.json'
 
-import {ThreeService} from '../services/ThreeService';
+const threeContainer = useTemplateRef('threeContainer')
 
 const searchName = ref('');
 const modalVisible = ref(false);
 const selectedChair = ref({})
-const threeContainer = useTemplateRef('threeContainer')
+
+const uniqueNames = computed(() => [
+    ...new Set(occupants.map((o) => o.nome).filter((name) => name.trim() !== ""))].sort());
 
 let threeInstance;
 
