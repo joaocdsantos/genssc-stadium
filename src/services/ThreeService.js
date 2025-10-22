@@ -380,7 +380,12 @@ export class ThreeService {
         const y = -((event.clientY - rect.top) / rect.height * 2 - 1);
 
         const mouseVector = new THREE.Vector2(x, y);
-        const raycaster = new THREE.Raycaster();
+        const raycaster = new THREE.Raycaster(
+            new THREE.Vector3(),         // origem
+            new THREE.Vector3(0, 0, -1), // direção
+            0,                           // near
+            Infinity                     // far
+        );
         raycaster.setFromCamera(mouseVector, this.camera);
 
         const intersects = raycaster.intersectObjects(this.scene.children, true);
