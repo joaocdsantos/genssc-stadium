@@ -21,6 +21,16 @@ export const STADIUM = {
     STEP_HEIGHT: 0.5,
     Z_START: 0,
 };
+// lights parameters
+export const LIGHT={
+    AMBIENT: {
+        INTENSITY: 3
+    },
+    DIRECTIONAL: {
+        INTENSITY: 1,
+        POSITION: [10, 10, 10]
+    }
+}
 
 export const SEAT= {
     WIDTH:0.5,

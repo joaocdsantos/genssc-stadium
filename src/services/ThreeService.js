@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
-import {COLORS, ROW_LETTERS, STADIUM} from "../constants/stadium";
-import { MaterialFactory } from "../factories/ThreeFactories"
+import {COLORS, LIGHT, ROW_LETTERS, STADIUM} from "../constants/stadium.js";
+import {LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
 
 
 export class ThreeService {
@@ -57,9 +57,10 @@ export class ThreeService {
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.container.appendChild(this.renderer.domElement);
+
         // lights
-        this.scene.add(new THREE.AmbientLight(COLORS.ECLIPSE));
-        this.scene.add(new THREE.DirectionalLight(COLORS.WHITE, 0.5));
+        this.scene.add(LightFactory.ambient(COLORS.ECLIPSE, LIGHT.AMBIENT.INTENSITY));
+        this.scene.add(LightFactory.directional(COLORS.WHITE, LIGHT.DIRECTIONAL.INTENSITY, LIGHT.DIRECTIONAL.POSITION));
     }
     buildStadiumStructure(){
         // creating materials for seats

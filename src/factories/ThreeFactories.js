@@ -8,3 +8,14 @@ export const MaterialFactory = {
         return new THREE.MeshPhongMaterial({color: color});
     }
 }
+
+export const LightFactory = {
+    ambient(color, intensity) {
+        return new THREE.AmbientLight(color, intensity)
+    },
+    directional(color, intensity, position) {
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(...position);
+        return light;
+    }
+}
