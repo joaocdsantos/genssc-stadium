@@ -67,6 +67,9 @@ export class ThreeService {
         const redMaterial = MaterialFactory.basic(COLORS.RED);
         const whiteMaterial = MaterialFactory.basic(COLORS.WHITE);
         const greenMaterial = MaterialFactory.basic(COLORS.GREEN);
+        const lightGrey = MaterialFactory.phong(COLORS.LIGHT_GREY)
+        const metalGrey = MaterialFactory.basic(COLORS.GREY_METAL)
+        const phongMetalGrey = MaterialFactory.phong(COLORS.GREY_METAL)
 
         // starting seat positions
         const redStartX = 0;
@@ -95,10 +98,9 @@ export class ThreeService {
         }
 
         // build stadium pillars
-        function createPillar(x, y, z, height, color) {
+        function createPillar(x, y, z, height) {
             const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
-            const material = new THREE.MeshBasicMaterial({color: color});
-            const pillar = new THREE.Mesh(geometry, material);
+            const pillar = new THREE.Mesh(geometry, metalGrey);
             pillar.position.set(x, y - height / 2, z);
             return pillar;
         }
@@ -128,8 +130,7 @@ export class ThreeService {
         // build stadium step
         function createStep(width, depth, height, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: COLORS.LIGHT_GREY});
-            const step = new THREE.Mesh(geometry, material);
+            const step = new THREE.Mesh(geometry, lightGrey);
             step.position.set(x, y, z);
             return step;
         }
@@ -137,8 +138,7 @@ export class ThreeService {
         // build stadium wall
         function createWall(width, height, depth, x, y, z) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: greenMaterial});
-            const wall = new THREE.Mesh(geometry, material);
+            const wall = new THREE.Mesh(geometry, lightGrey);
             wall.position.set(x, y, z);
             return wall;
         }
@@ -241,8 +241,7 @@ export class ThreeService {
         const coverThickness = 0.5;
 
         const coverGeometry = new THREE.BoxGeometry(coverWidth, coverThickness, coverDepth);
-        const coverMaterial = new THREE.MeshPhongMaterial({color: COLORS.GREY_METAL});
-        const cover = new THREE.Mesh(coverGeometry, coverMaterial);
+        const cover = new THREE.Mesh(coverGeometry, phongMetalGrey);
 
         const coverHeight = 2.0;
 
@@ -256,13 +255,13 @@ export class ThreeService {
         // add pillars
         const pillarHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT + 0.5 + coverHeight;
 
-        const greenPillar = createPillar(greenPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
+        const greenPillar = createPillar(greenPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight);
         this.scene.add(greenPillar);
 
-        const whitePillar = createPillar(whitePillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
+        const whitePillar = createPillar(whitePillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight);
         this.scene.add(whitePillar);
 
-        const redPillar = createPillar(redPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, COLORS.GREY_METAL);
+        const redPillar = createPillar(redPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight);
         this.scene.add(redPillar);
 
         // add wall beside first step
@@ -361,7 +360,7 @@ export class ThreeService {
                 String(chairInfo.sponsor_name).toLowerCase().includes(searchQuery)
             ) {
                 if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
-                mesh.material = new THREE.MeshBasicMaterial({color: COLORS.GOLD});
+                mesh.material = MaterialFactory.basic(COLORS.GOLD);
                 hits++;
             }
         });
