@@ -32,3 +32,9 @@ export const LightFactory = {
         return light;
     }
 }
+
+export const GeometryFactory ={
+    box(width, height, depth){
+        return new THREE.BoxGeometry(width, height, depth)
+    }
+}

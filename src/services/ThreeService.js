@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
 import {COLORS, LIGHT, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
-import {ConfigsFactory, LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
+import {ConfigsFactory, GeometryFactory, LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
 
 
 export class ThreeService {
@@ -41,10 +41,7 @@ export class ThreeService {
         this.buildStadiumStructure();
         this.setupCameraAndControls()
         this.animate();
-
-        // listeners
-        window.addEventListener('resize', this.onResize);
-        window.addEventListener('click', this.onMouseClick);
+        this.eventListeners();
     }
 
     /**
@@ -77,7 +74,7 @@ export class ThreeService {
 
         // build stadium seats
         const createChair = (x, y, z, material, chairModel) => {
-            const geometry = new THREE.BoxGeometry(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH);
+            const geometry = GeometryFactory.box(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
             chair.rotation.y = Math.PI;
@@ -98,7 +95,7 @@ export class ThreeService {
 
         // build stadium pillars
         function createPillar(x, y, z, height) {
-            const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
+            const geometry = GeometryFactory.box(0.3, height, 0.3);
             const pillar = new THREE.Mesh(geometry, metalGrey);
             pillar.position.set(x, y - height / 2, z);
             return pillar;
@@ -128,7 +125,7 @@ export class ThreeService {
 
         // build stadium step
         function createStep(width, depth, height, x, y, z) {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const geometry = GeometryFactory.box(width, height, depth);
             const step = new THREE.Mesh(geometry, lightGrey);
             step.position.set(x, y, z);
             return step;
@@ -136,7 +133,7 @@ export class ThreeService {
 
         // build stadium wall
         function createWall(width, height, depth, x, y, z) {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const geometry = GeometryFactory.box(width, height, depth);
             const wall = new THREE.Mesh(geometry, lightGrey);
             wall.position.set(x, y, z);
             return wall;
@@ -319,6 +316,10 @@ export class ThreeService {
             this._raf = requestAnimationFrame(loop);
         }
         loop();
+    }
+    eventListeners(){
+        window.addEventListener('resize', this.onResize);
+        window.addEventListener('click', this.onMouseClick);
     }
 
     updateNames = () => {
