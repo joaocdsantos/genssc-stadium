@@ -33,9 +33,9 @@ export const LIGHT={
 }
 
 export const SEAT= {
-    WIDTH:0.5,
-    HEIGHT:0.5,
-    DEPTH:0.5,
+    WIDTH: 0.5,
+    HEIGHT: 0.5,
+    DEPTH: 0.5,
 }
 
 export const ROW_LETTERS = ['F', 'E', 'D', 'C', 'B', 'A'];

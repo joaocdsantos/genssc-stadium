@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
-import {COLORS, LIGHT, ROW_LETTERS, STADIUM} from "../constants/stadium.js";
+import {COLORS, LIGHT, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
 import {LightFactory, MaterialFactory} from "../factories/ThreeFactories.js"
 
 
@@ -78,7 +78,7 @@ export class ThreeService {
 
         // build stadium seats
         const createChair = (x, y, z, material, chairModel) => {
-            const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const geometry = new THREE.BoxGeometry(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH);
             const chair = new THREE.Mesh(geometry, material);
             chair.position.set(x, y, z);
             chair.rotation.y = Math.PI;
