@@ -44,9 +44,9 @@ export class ThreeService {
         this.eventListeners();
     }
 
-    /**
-     * Renderer & lights configuration
-     */
+    // ======================================
+    //          PUBLIC METHODS
+    // ======================================
     setupScene() {
         // configs
         this.scene = ConfigsFactory.scene()
@@ -58,7 +58,6 @@ export class ThreeService {
         this.scene.add(LightFactory.ambient(COLORS.ECLIPSE, LIGHT.AMBIENT.INTENSITY));
         this.scene.add(LightFactory.directional(COLORS.WHITE, LIGHT.DIRECTIONAL.INTENSITY, LIGHT.DIRECTIONAL.POSITION));
     }
-
     buildStadiumStructure() {
         // creating materials
         const redMaterial = MaterialFactory.basic(COLORS.RED);
@@ -73,135 +72,34 @@ export class ThreeService {
         const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
         const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
 
-        // build stadium seats
-        const createChair = (x, y, z, material, chairModel) => {
-            const chairGeometry = GeometryFactory.box(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH);
-            const chair = new THREE.Mesh(chairGeometry, material);
-            chair.position.set(x, y, z);
-            chair.rotation.y = Math.PI;
-            chair.userData = {...chairModel, originalVisibility: true, originalMaterial: material};
-
-            // click event
-            chair.onClick = () => this.onSeatClick({...chair.userData})
-
-            // check if seat collide with pillars, and hide it
-            const pillarCollision = isCollisionWithPillar(x, z);
-            if (pillarCollision) {
-                chair.visible = false;
-                chair.userData.originalVisibility = false;
-            }
-            return chair;
-        }
-
-        // check collision between seats and pillars
-        function isCollisionWithPillar(chairX, chairZ) {
-            const pillarPositions = [
-                {x: greenPillarX, z: STADIUM.Z_START + 5},
-                {x: whitePillarX, z: STADIUM.Z_START + 5},
-                {x: redPillarX, z: STADIUM.Z_START + 5}
-            ];
-
-            const chairRadius = 0.25;
-            const pillarRadius = 0.15;
-
-            for (const pillar of pillarPositions) {
-                const distanceSquared = (pillar.x - chairX) ** 2 + (pillar.z - chairZ) ** 2;
-                const minDistance = (pillarRadius + chairRadius) ** 2;
-
-                if (distanceSquared < minDistance) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // steps total width
-        const totalWidthDegree = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING + 2 * STADIUM.GAP_BETWEEN_GROUPS;
-        // steps center
-        const stepCenterX = (redStartX + greenStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING) / 2;
-
-
         // ******* PILLARS *********
         // pillar positions
         const greenPillarX = greenStartX + 10 * STADIUM.SPACING;
         const whitePillarX = whiteStartX + 10 * STADIUM.SPACING;
         const redPillarX = redStartX + 11 * STADIUM.SPACING;
 
+        this._pillarPositions = [
+            { x: greenPillarX, z: STADIUM.Z_START + 5 },
+            { x: whitePillarX, z: STADIUM.Z_START + 5 },
+            { x: redPillarX, z: STADIUM.Z_START + 5 }
+        ];
         const pillarHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT + 0.5 + 2.0;
 
         // add pillars
         const greenPillar = this._buildPillar(greenPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, metalGrey);
         const whitePillar = this._buildPillar(whitePillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, metalGrey);
         const redPillar = this._buildPillar(redPillarX, pillarHeight, STADIUM.Z_START + 5, pillarHeight, metalGrey);
-        this.scene.add(whitePillar).add(greenPillar).add(redPillar);
+        this.scene.add(whitePillar);
+        this.scene.add(greenPillar);
+        this.scene.add(redPillar);
         // ************************
 
 
+        // ************************
 
-
-        for (let i = 0; i < STADIUM.ROWS; i++) {
-            // add green seats (22x6)
-            for (let j = 0; j < STADIUM.GREEN_COLUMNS; j++) {
-                const chairX = greenStartX + j * STADIUM.SPACING;
-                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-
-                const chairModel = new ChairModel({
-                    section: 'verde',
-                    row: this._getLetterForRow(i),
-                    seat: this._getNumberForColumn(j),
-                    sponsor_name: ''
-                });
-
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, greenMaterial, chairModel,
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    }
-                );
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-            // add white seats (21x6)
-            for (let j = 0; j < STADIUM.WHITE_COLUMNS; j++) {
-                const chairX = whiteStartX + j * STADIUM.SPACING;
-                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-
-                const chairModel = new ChairModel({
-                    section: 'branca',
-                    row: this._getLetterForRow(i),
-                    seat: this._getNumberForColumn(j + 1),
-                    sponsor_name: ''
-                });
-
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, whiteMaterial, chairModel,
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    });
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-            // add red seats (22x6)
-            for (let j = 0; j < STADIUM.RED_COLUMNS; j++) {
-                const chairX = redStartX + j * STADIUM.SPACING;
-                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
-
-                const chairModel = new ChairModel({
-                    section: 'vermelha',
-                    row: this._getLetterForRow(i),
-                    seat: this._getNumberForColumn(j),
-                    sponsor_name: ''
-                });
-
-                const chair = createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, redMaterial, chairModel,
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    });
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-        }
+        this._buildSectionSeats({ sectionName: 'verde', material: greenMaterial, startX: greenStartX, columns: STADIUM.GREEN_COLUMNS });
+        this._buildSectionSeats({ sectionName: 'branca', material: whiteMaterial, startX: whiteStartX, columns: STADIUM.WHITE_COLUMNS });
+        this._buildSectionSeats({ sectionName: 'vermelha', material: redMaterial, startX: redStartX, columns: STADIUM.RED_COLUMNS });
 
         // ************************
 
@@ -209,6 +107,10 @@ export class ThreeService {
 
 
         // ******* EXTRA STEPS *********
+        // steps total width
+        const totalWidthDegree = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING + 2 * STADIUM.GAP_BETWEEN_GROUPS;
+        // steps center
+        const stepCenterX = (redStartX + greenStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING) / 2;
         // add steps
         const extraSteps = 3;
         for (let i = -extraSteps; i < STADIUM.ROWS; i++) {
@@ -217,7 +119,19 @@ export class ThreeService {
         }
         // ************************
 
-        // ******* COVER *********
+        // ******* WALL *********
+        // add wall beside first step
+        const wallHeight = 2;
+        const wallThickness = 0.2;
+        const wallY = -extraSteps * STADIUM.STEP_HEIGHT - wallHeight / 2;
+        const wallZ = -extraSteps - STADIUM.SPACING / 2;
+        const wallWidth = totalWidthDegree + 2; // define wall width equals to steps length
+
+        const wall = this._buildWall(wallWidth, wallHeight, wallThickness, stepCenterX, wallY, wallZ,lightGrey);
+        this.scene.add(wall);
+        // ************************
+
+        // ******* ROOF *********
         // add cover
         const coverWidth = totalWidthDegree;
         const coverDepth = STADIUM.ROWS * STADIUM.SPACING;
@@ -232,17 +146,8 @@ export class ThreeService {
         this.scene.add(roof);
         // ************************
 
-        // ******* WALL *********
-        // add wall beside first step
-        const wallHeight = 2;
-        const wallThickness = 0.2;
-        const wallY = -extraSteps * STADIUM.STEP_HEIGHT - wallHeight / 2;
-        const wallZ = -extraSteps - STADIUM.SPACING / 2;
-        const wallWidth = totalWidthDegree + 2; // define wall width equals to steps length
 
-        const wall = this._buildWall(wallWidth, wallHeight, wallThickness, stepCenterX, wallY, wallZ,lightGrey);
-        this.scene.add(wall);
-        // ************************
+
     }
     setupCameraAndControls() {
         // configure camera to show bench on front
@@ -293,12 +198,12 @@ export class ThreeService {
         window.addEventListener('resize', this.onResize);
         window.addEventListener('click', this.onMouseClick);
     }
+    // ======================================
 
 
-// ======================================
-// PRIVATE METHODS
-// ======================================
-
+    // ======================================
+    //          PRIVATE METHODS
+    // ======================================
     //* get letter based on row
     _getLetterForRow(rowIndex) {
         return ROW_LETTERS[rowIndex] || '';
@@ -323,11 +228,28 @@ export class ThreeService {
                     sponsor_name: ''
                 });
 
-                const chair = this._createChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, material, chairModel);
+                const chair = this._buildChair(chairX, i * STADIUM.STEP_HEIGHT, chairZ, material, chairModel);
                 this.chairMeshes.push(chair);
                 this.scene.add(chair);
             }
         }
+    }
+
+    //* build stadium seat
+    _buildChair(x, y, z, material, chairModel) {
+        const geometry = GeometryFactory.box(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH);
+        const chair = new THREE.Mesh(geometry, material);
+        chair.position.set(x, y, z);
+        chair.rotation.y = Math.PI;
+        chair.userData = { ...chairModel, originalVisibility: true, originalMaterial: material };
+
+        chair.onClick = () => this.onSeatClick({ ...chair.userData });
+
+        if (this._isCollisionWithPillar(x, z)) {
+            chair.visible = false;
+            chair.userData.originalVisibility = false;
+        }
+        return chair;
     }
 
     //* build stadium steps
@@ -362,8 +284,18 @@ export class ThreeService {
         return roof;
     }
 
-// ======================================
+    _isCollisionWithPillar(x, z) {
+        const positions = this._pillarPositions || [];
+        const chairRadius = 0.25, pillarRadius = 0.15;
 
+        return positions.some(p => ((p.x - x) ** 2 + (p.z - z) ** 2) < (pillarRadius + chairRadius) ** 2);
+    }
+    // ======================================
+
+
+    // ======================================
+    //          OTHERS METHODS
+    // ======================================
     updateNames = () => {
         this.scene.traverse((object) => {
             if (object instanceof THREE.Mesh && object.userData.section) {
@@ -462,4 +394,5 @@ export class ThreeService {
         this.scene = this.camera = this.renderer = this.controls = null;
         this.chairMeshes = [];
     }
+    // ======================================
 }
