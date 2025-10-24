@@ -2,7 +2,8 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {ChairModel} from "../models/ChairModel";
-import {COLORS, LIGHT, PILLAR, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
+import {COLORS} from "../constants/colors.js";
+import {LIGHT, PILLAR, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
 import {ConfigsFactory, GeometryFactory, LightFactory, MaterialFactory, MeshFactory} from "../factories/ThreeFactories.js"
 
 
