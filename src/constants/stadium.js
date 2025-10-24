@@ -34,8 +34,14 @@ export const LIGHT={
 
 export const SEAT= {
     WIDTH: 0.5,
-    HEIGHT: 0.5,
+    HEIGHT: 0.15,
     DEPTH: 0.5,
+}
+
+export const PILLAR = {
+    WIDTH: 0.3,
+    HEIGHT: 0.15,
+    DEPTH: 0.3,
 }
 
 export const ROW_LETTERS = ['F', 'E', 'D', 'C', 'B', 'A'];
