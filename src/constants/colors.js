@@ -1,5 +1,4 @@
-//COLORS USED ON THE PROJECT
-
+// Colors
 export const COLORS = {
     RED: 0xff0000,
     WHITE: 0xffffff,

@@ -1,43 +1,49 @@
 <template>
   <div class="main-container">
 
-
     <!-- 3D Scene - Three JS -->
     <div ref="threeContainer" class="three-container"></div>
 
     <!-- Search -->
     <div class="search-container">
-
       <!-- Logo -->
       <!--TODO - check if logo was necessary there
             <div class="image-container">
-              <img src="../assets/gsc_logo_vector.png" alt="Logo vector Gens"/>
+              <img src="../assets/gsc_logo_vector.png" alt="Logotipo do Gens Sport Clube"/>
             </div>
        -->
       <!-- Search Input -->
-      <input
+      <!-- <input
           v-model="searchName"
           @input="searchSubject"
           placeholder="Pesquisar nome"
-          class="search-input"
-      >
+          class="search-input">
+      -->
+      <select v-model="searchName"
+              class="search-input"
+              @change="searchSubject">
+        <option value="">Selecione um nome</option>
+        <option v-for="name in uniqueNames" :key="name" :value="name">
+          {{ name }}
+        </option>
+      </select>
     </div>
 
     <!-- Modal -->
     <div v-if="modalVisible" class="modal">
       <div class="modal-content">
         <div class="image-container">
-          <img src="../assets/logo.png" alt="Logótipo do Gens Sport Clube"/>
+          <img src="../assets/logo.png" alt="Logotipo do Gens Sport Clube"/>
         </div>
         <p class="sponsor-info">
           <span class="sponsor-name">
-        {{ selectedChair.nome }}
+        {{ selectedChair.sponsor_name }}
         <i class="fa fa-star"></i>
       </span>
         </p>
-        <p>Secção: <strong>{{ selectedChair.seccao }} </strong></p>
-        <p>Fila: <strong>{{ selectedChair.fila }}</strong></p>
-        <p>Lugar: <strong>{{ selectedChair.lugar }}</strong></p>
+        <p>Secção: <strong>{{ selectedChair.section }} </strong></p>
+        <p>Fila: <strong>{{ selectedChair.row }}</strong></p>
+        <p>Lugar: <strong>{{ selectedChair.seat }}</strong></p>
         <button @click="closeModal" class="modal-close">OK</button>
       </div>
     </div>
@@ -45,15 +51,18 @@
 </template>
 
 <script setup>
-import {ref, onMounted, useTemplateRef, onBeforeUnmount} from 'vue';
+import {ref, onMounted, useTemplateRef, onBeforeUnmount, computed } from 'vue';
+import {ThreeService} from '../services/ThreeService';
 import occupants from '../assets/data.json'
 
-import {ThreeService} from '../services/ThreeService';
+const threeContainer = useTemplateRef('threeContainer')
 
 const searchName = ref('');
 const modalVisible = ref(false);
 const selectedChair = ref({})
-const threeContainer = useTemplateRef('threeContainer')
+
+const uniqueNames = computed(() => [
+    ...new Set(occupants.map((o) => o.nome).filter((name) => name.trim() !== ""))].sort());
 
 let threeInstance;
 

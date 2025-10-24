@@ -1,14 +1,24 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {COLORS} from "../constants/colors";
+import {SeatModel} from "../models/SeatModel";
+import {COLORS} from "../constants/colors.js";
+import {LIGHT, PILLAR, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
+import {ConfigsFactory, GeometryFactory, LightFactory, MaterialFactory, MeshFactory} from "../factories/ThreeFactories.js"
 
 
 export class ThreeService {
-    constructor(container, occupants = [], onSeatClick = () => {
-    }) {
+    constructor(container, occupants = [], onSeatClick = () => {}) {
         this.container = container;
-        this.occupants = occupants;
+
+        //TODO - original JSON key from Portuguese to English
+        this.occupants = occupants.map(seat => ({
+            section: seat.seccao,
+            row: seat.fila,
+            seat: seat.lugar,
+            sponsor_name: seat.nome,
+        }));
+
         this.onSeatClick = onSeatClick;
 
         // Three core
@@ -26,329 +36,372 @@ export class ThreeService {
         this.onMouseClick = this.onMouseClick.bind(this);
     }
 
-
     init() {
-        this.chairMeshes = [];
+        this.setupScene();
+        this.buildStadiumStructure();
+        this.setupCameraAndControls()
+        this.animate();
+        this.eventListeners();
+    }
 
-        // Configuração básica
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // ======================================
+    //          PUBLIC METHODS
+    // ======================================
+    /** Creates the Three.js scene, camera, renderer, and lights. */
+    setupScene() {
+
+        // Three.js base configurations
+        this.scene = ConfigsFactory.scene()
+        this.camera = ConfigsFactory.perspectiveCamera()
+        this.renderer = ConfigsFactory.webGlRenderer()
         this.container.appendChild(this.renderer.domElement);
 
-        //adding lights
-        const ambientLight = new THREE.AmbientLight(COLORS.ECLIPSE);
-        this.scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(COLORS.WHITE, 0.5);
-        this.scene.add(directionalLight);
+        // Ambient & directional lights
+        this.scene.add(LightFactory.ambient(COLORS.ECLIPSE, LIGHT.AMBIENT.INTENSITY));
+        this.scene.add(LightFactory.directional(COLORS.WHITE, LIGHT.DIRECTIONAL.INTENSITY, LIGHT.DIRECTIONAL.POSITION));
+    }
 
-        // creating materials for seats
-        const redMaterial = new THREE.MeshBasicMaterial({color: COLORS.RED});
-        const whiteMaterial = new THREE.MeshBasicMaterial({color: COLORS.WHITE});
-        const greenMaterial = new THREE.MeshBasicMaterial({color: COLORS.GREEN});
-
-        // stadium parameters
-        const rows = 6;
-        const greenCols = 22;
-        const whiteCols = 21;
-        const redCols = 22;
-        const spacing = 1.0;
-        const gapBetweenGroups = 1.5 * spacing;
-        const stepHeight = 0.5;
-        const zStart = 0;
-
-
-
-        // seat creation factory
-        function createChair(x, y, z, material, chairInfo) {
-            const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            const chair = new THREE.Mesh(geometry, material);
-            chair.position.set(x, y, z);
-            chair.rotation.y = Math.PI;
-            chair.userData = {...chairInfo, originalVisibility: true, originalMaterial: material};
-
-            // Adicionar evento de clique
-            chair.onClick = () => this.onSeatClick({...chair.userData})
-            console.log(chair.userData);
-
-            // Verificar colisão com pilares e esconder a cadeira que colide
-            const pillarCollision = isCollisionWithPillar(x, z);
-            if (pillarCollision) {
-                chair.visible = false;
-                chair.userData.originalVisibility = false; // Atualiza a visibilidade original se a cadeira estiver oculta
-            }
-
-            return chair;
-        }
-
-        // Função para criar um pilar
-        function createPillar(x, y, z, height, color) {
-            const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
-            const material = new THREE.MeshBasicMaterial({color: color});
-            const pillar = new THREE.Mesh(geometry, material);
-            pillar.position.set(x, y - height / 2, z);
-            return pillar;
-        }
-
-        // Função para verificar colisão com pilares
-        function isCollisionWithPillar(chairX, chairZ) {
-            const pillarPositions = [
-                {x: greenPillarX, z: zStart + 5},
-                {x: whitePillarX, z: zStart + 5},
-                {x: redPillarX, z: zStart + 5}
-            ];
-
-            const chairRadius = 0.25;
-            const pillarRadius = 0.15;
-
-            for (const pillar of pillarPositions) {
-                const distanceSquared = (pillar.x - chairX) ** 2 + (pillar.z - chairZ) ** 2;
-                const minDistance = (pillarRadius + chairRadius) ** 2;
-
-                if (distanceSquared < minDistance) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Função para criar um degrau
-        function createStep(width, depth, height, x, y, z) {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: COLORS.LIGHT_GREY});
-            const step = new THREE.Mesh(geometry, material);
-            step.position.set(x, y, z);
-            return step;
-        }
-
-        // Função para criar um muro
-        function createWall(width, height, depth, x, y, z) {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({color: greenMaterial});
-            const wall = new THREE.Mesh(geometry, material);
-            wall.position.set(x, y, z);
-            return wall;
-        }
-
-        // Função auxiliar para obter a letra baseada na linha
-        function getLetterForRow(rowIndex) {
-            const letters = ['F', 'E', 'D', 'C', 'B', 'A'];
-            return letters[rowIndex] || '';
-        }
-
-        // Função auxiliar para obter a numeração correta
-        function getNumberForColumn(colIndex) {
-            return (greenCols - colIndex) || '';
-        }
-
-        // Definir posições de início das cadeiras
-        const redStartX = 0;
-        const whiteStartX = redStartX + greenCols * spacing + gapBetweenGroups;
-        const greenStartX = whiteStartX + whiteCols * spacing + gapBetweenGroups;
-
-        // Largura total dos degraus
-        const totalWidthDegree = (redCols + whiteCols + greenCols) * spacing + 2 * gapBetweenGroups;
-        // Centro dos degraus
-        const stepCenterX = (redStartX + greenStartX + greenCols * spacing) / 2;
-
-        // Definir posições dos pilares
-        const greenPillarX = greenStartX + 10 * spacing;
-        const whitePillarX = whiteStartX + 10 * spacing;
-        const redPillarX = redStartX + 11 * spacing;
-
-        for (let i = 0; i < rows; i++) {
-            // Adicionar cadeiras Verdes (22x6)
-            for (let j = 0; j < greenCols; j++) {
-                const chairX = greenStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, greenMaterial,
-                    {
-                        seccao: 'verde',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j),
-                        nome: ``
-                    },
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    }
-                );
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-            // Adicionar cadeiras brancas (21x6)
-            for (let j = 0; j < whiteCols; j++) {
-                const chairX = whiteStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, whiteMaterial, {
-                        seccao: 'branca',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j + 1),
-                        nome: ``
-                    },
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    });
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-
-            // Adicionar cadeiras vermelhas (22x6)
-            for (let j = 0; j < redCols; j++) {
-                const chairX = redStartX + j * spacing;
-                const chairZ = zStart + i * spacing;
-                const chair = createChair(chairX, i * stepHeight, chairZ, redMaterial,
-                    {
-                        seccao: 'vermelha',
-                        fila: getLetterForRow(i),
-                        lugar: getNumberForColumn(j),
-                        nome: ``
-                    },
-                    () => {
-                        selectedChair.value = {...chair.userData};
-                        modalVisible.value = true;
-                    });
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
-            }
-        }
+    /** Builds the entire stadium structure. */
+    buildStadiumStructure() {
+        this._createMaterials();
+        this._buildPillars();
+        this._buildSeatSections()
+        this._buildSteps()
+        this._buildWall()
+        this._buildRoof()
         this.updateNames()
-        // ADICIONAR DEGRAUS
-        const extraSteps = 3;
-        for (let i = -extraSteps; i < rows; i++) {
-            const extraStepLength = 1.0;
-            const step = createStep(totalWidthDegree + 2 * extraStepLength, spacing, stepHeight, stepCenterX, i * stepHeight - stepHeight / 2, zStart + i * spacing);
-            this.scene.add(step);
-        }
+    }
 
-        // ADICIONAR DEGRAUS COBERTURA
-        const coverWidth = totalWidthDegree;
-        const coverDepth = rows * spacing;
-        const coverThickness = 0.5;
+    /** Initializes the camera position and orbit controls. */
+    setupCameraAndControls() {
+        // configure camera to show bench on front
+        const totalWidth = (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING;
+        const totalHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT;
+        const totalDepth = STADIUM.ROWS * STADIUM.SPACING;
 
-        const coverGeometry = new THREE.BoxGeometry(coverWidth, coverThickness, coverDepth);
-        const coverMaterial = new THREE.MeshPhongMaterial({color: COLORS.GREY_METAL});
-        const cover = new THREE.Mesh(coverGeometry, coverMaterial);
-
-        const coverHeight = 2.0;
-
-        cover.position.set(
-            stepCenterX,
-            rows * stepHeight + 0.5 + coverHeight + coverThickness / 2,
-            zStart + (rows * spacing) / 2 - spacing / 2
-        );
-        this.scene.add(cover);
-
-        // ADICIONAR PILARES
-        const pillarHeight = rows * stepHeight + 0.5 + coverHeight;
-
-        const greenPillar = createPillar(greenPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
-        this.scene.add(greenPillar);
-
-        const whitePillar = createPillar(whitePillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
-        this.scene.add(whitePillar);
-
-        const redPillar = createPillar(redPillarX, pillarHeight, zStart + 5, pillarHeight, COLORS.GREY_METAL);
-        this.scene.add(redPillar);
-
-        // Adicionar muro junto ao primeiro degrau
-        const wallHeight = 2;
-        const wallThickness = 0.2;
-        const wallY = -extraSteps * stepHeight - wallHeight / 2;
-        const wallZ = -extraSteps - spacing / 2;
-
-        // Definir a largura do muro igual ao comprimento dos degraus prolongados
-        const wallWidth = totalWidthDegree + 2;
-
-        // Ajustar a posição do muro para centralizá-lo
-        const wall = createWall(wallWidth, wallHeight, wallThickness, stepCenterX, wallY, wallZ);
-        this.scene.add(wall);
-
-        // Configurar a câmera para mostrar a bancada de frente
-        const totalHeight = rows * stepHeight;
-        const totalDepth = rows * spacing;
-        const centerX = totalWidthDegree / 2;
+        const centerX = totalWidth / 2;
         const centerY = totalHeight / 2;
         const centerZ = totalDepth / 2;
 
-        // Configurar a câmera para mostrar a bancada do lado oposto
         const cameraDistance = Math.max(
-            totalWidthDegree / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
+            totalWidth / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
             totalHeight / (2 * Math.tan(this.camera.fov * Math.PI / 360))
         );
 
         this.camera.position.set(centerX, centerY + 15, centerZ - cameraDistance);
         this.camera.lookAt(new THREE.Vector3(centerX, centerY, centerZ));
 
-        // Configurar os controles
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.target.set(centerX, centerY, centerZ);
-        this.controls.enablePan = true;
-        this.controls.enableZoom = true;
-        this.controls.enableRotate = true;
-        this.controls.panSpeed = 0.5;
-        this.controls.zoomSpeed = 1.0;
-        this.controls.rotateSpeed = 0.5;
-        this.controls.minDistance = 25;
-        this.controls.maxDistance = 40;
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-
-        // // Limite rotação vertical:
-        this.controls.minPolarAngle = Math.PI / 4; // 45 graus
-        this.controls.maxPolarAngle = Math.PI / 2; // 90 graus
-        //
-        // // Limite rotação horizontal (ajustado para 180 graus):
-        this.controls.minAzimuthAngle = Math.PI * 7 / 8; // 157.5 graus
-        this.controls.maxAzimuthAngle = (Math.PI * 7 / 8) * -1; // 202.5 graus
-
-
-        // Configuração da animação
-        const animate = () => {
-            this.controls.update();
-            this.renderer.render(this.scene, this.camera);
-            this._raf = requestAnimationFrame(animate);
-        }
-        animate();
-
-
-        //Listeners
-        // Ajustar o renderizador ao tamanho da tela
-        window.addEventListener('resize', this.onResize);
-        // Adiciona o listener para cliques do mouse
-        window.addEventListener('click', this.onMouseClick);
+        Object.assign(this.controls, {
+            target: new THREE.Vector3(centerX, centerY, centerZ),
+            enablePan: true,
+            enableZoom: true,
+            enableRotate: true,
+            panSpeed: 0.5,
+            zoomSpeed: 1.0,
+            rotateSpeed: 0.5,
+            minDistance: 25,
+            maxDistance: 40,
+            enableDamping: true,
+            dampingFactor: 0.05,
+            minPolarAngle: Math.PI / 4,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: (Math.PI * 7 / 8),
+            maxAzimuthAngle: -(Math.PI * 7 / 8),
+        })
     }
 
+    /**  Starts the render loop for continuous scene updates */
+    animate() {
+        const loop = () => {
+            this.controls.update();
+            this.renderer.render(this.scene, this.camera);
+            this._raf = requestAnimationFrame(loop);
+        }
+        loop();
+    }
+
+    /** Adds window event listeners for resize and click */
+    eventListeners() {
+        window.addEventListener('resize', this.onResize);
+        window.addEventListener('click', this.onMouseClick);
+    }
+    // ======================================
+
+
+    // ======================================
+    //          PRIVATE METHODS
+    // ======================================
+    /** creates needed three materials */
+    _createMaterials(){
+        this.materials = {
+            red: MaterialFactory.basic(COLORS.RED),
+            white: MaterialFactory.basic(COLORS.WHITE),
+            green: MaterialFactory.basic(COLORS.GREEN),
+            lightGrey: MaterialFactory.phong(COLORS.LIGHT_GREY),
+            metalGrey: MaterialFactory.basic(COLORS.GREY_METAL),
+            phongMetalGrey: MaterialFactory.phong(COLORS.GREY_METAL),
+            gold: MaterialFactory.basic(COLORS.GOLD)
+        };
+    }
+
+    /** builds stadium pillars */
+    _buildPillars() {
+        const { metalGrey } = this.materials;
+
+        const pillarHeight = STADIUM.ROWS * STADIUM.STEP_HEIGHT + 3;
+
+        const redStartX = 0;
+        const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+        const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+
+        const redPillarX = redStartX + 11;
+        const whitePillarX = whiteStartX + 10;
+        const greenPillarX = greenStartX + 10;
+
+        this._pillarPositions = [
+            { x: greenPillarX, z: STADIUM.Z_START + 5 },
+            { x: whitePillarX, z: STADIUM.Z_START + 5 },
+            { x: redPillarX, z: STADIUM.Z_START + 5 },
+        ];
+
+        const pillars = this._pillarPositions.map(pos =>
+            this._buildPillarMesh(PILLAR.WIDTH, pillarHeight, PILLAR.DEPTH, pos.x, pillarHeight, pos.z, metalGrey)
+        );
+
+        pillars.forEach(pillar => this.scene.add(pillar));
+    }
+
+    /** build stadium section and seats */
+    _buildSeatSections(){
+        const { red, white, green } = this.materials;
+
+        const redStartX = 0;
+        const whiteStartX = redStartX + STADIUM.GREEN_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+        const greenStartX = whiteStartX + STADIUM.WHITE_COLUMNS * STADIUM.SPACING + STADIUM.GAP_BETWEEN_GROUPS;
+
+        this._buildSectionSeats({ sectionName: 'verde', material: green, startX: greenStartX, columns: STADIUM.GREEN_COLUMNS });
+        this._buildSectionSeats({ sectionName: 'branca', material: white, startX: whiteStartX, columns: STADIUM.WHITE_COLUMNS });
+        this._buildSectionSeats({ sectionName: 'vermelha', material: red, startX: redStartX, columns: STADIUM.RED_COLUMNS });
+    }
+
+    /** build stadium steps */
+    _buildSteps() {
+        const { lightGrey } = this.materials;
+
+        const totalWidth = this._getTotalWidth();
+
+        const stepCenterX = totalWidth / 2;
+        const extraSteps = 3;
+
+        for (let i = -extraSteps; i < STADIUM.ROWS; i++) {
+            const y = i * STADIUM.STEP_HEIGHT - STADIUM.STEP_HEIGHT / 2;
+            const z = STADIUM.Z_START + i * STADIUM.SPACING;
+
+            const step = this._buildStepMesh(
+                totalWidth + 2,
+                STADIUM.SPACING,
+                STADIUM.STEP_HEIGHT,
+                stepCenterX,
+                y,
+                z,
+                lightGrey
+            );
+
+            this.scene.add(step);
+        }
+    }
+
+    /** build stadium wall */
+    _buildWall() {
+        const { lightGrey } = this.materials;
+
+        const totalWidth = this._getTotalWidth();
+
+        const stepCenterX = totalWidth / 2;
+        const extraSteps = 3;
+
+        const wallHeight = 2;
+        const wallThickness = 0.2;
+        const wallY = -extraSteps * STADIUM.STEP_HEIGHT - wallHeight / 2;
+        const wallZ = -extraSteps - STADIUM.SPACING / 2;
+        const wallWidth = totalWidth + 2;
+
+        const wall = this._buildWallMesh(
+            wallWidth,
+            wallHeight,
+            wallThickness,
+            stepCenterX,
+            wallY,
+            wallZ,
+            lightGrey
+        );
+
+        this.scene.add(wall);
+    }
+
+    /** build stadium roof */
+    _buildRoof() {
+        const { phongMetalGrey } = this.materials;
+
+        // cálculo das dimensões gerais do estádio
+        const totalWidth = this._getTotalWidth();
+
+        const coverWidth = totalWidth;
+        const coverDepth = STADIUM.ROWS * STADIUM.SPACING;
+        const coverHeight = 0.5;
+        const coverThickness = 0.5;
+
+        const roofX = totalWidth / 2;
+        const roofY =
+            STADIUM.ROWS * STADIUM.STEP_HEIGHT +
+            2 +
+            coverHeight +
+            coverThickness / 2;
+        const roofZ =
+            STADIUM.Z_START +
+            (STADIUM.ROWS * STADIUM.SPACING) / 2 -
+            STADIUM.SPACING / 2;
+
+        // cria a geometria do teto
+        const roof = this._buildRoofMesh(
+            coverWidth,
+            coverHeight,
+            coverDepth,
+            roofX,
+            roofY,
+            roofZ,
+            phongMetalGrey
+        );
+
+        this.scene.add(roof);
+    }
+
+    /** get letter based on row */
+    _getLetterForRow(rowIndex) {
+        return ROW_LETTERS[rowIndex] || '';
+    }
+
+    /** get number seat */
+    _getNumberForColumn(colIndex) {
+        return (STADIUM.GREEN_COLUMNS - colIndex) || '';
+    }
+
+    /** get total width */
+    _getTotalWidth() {
+        return (
+            (STADIUM.RED_COLUMNS + STADIUM.WHITE_COLUMNS + STADIUM.GREEN_COLUMNS) * STADIUM.SPACING +
+            2 * STADIUM.GAP_BETWEEN_GROUPS
+        );
+    }
+
+    /**  check if seat collides with a pillar */
+    _isCollisionWithPillar(x, z) {
+        const positions = this._pillarPositions || [];
+        const chairRadius = 0.25, pillarRadius = 0.15;
+
+        return positions.some(p => ((p.x - x) ** 2 + (p.z - z) ** 2) < (pillarRadius + chairRadius) ** 2);
+    }
+
+    /** build sections */
+    _buildSectionSeats({sectionName, material, startX, columns}) {
+        for (let i = 0; i < STADIUM.ROWS; i++) {
+            for (let j = 0; j < columns; j++) {
+                const chairX = startX + j;
+                const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
+
+                const seatModel = new SeatModel({
+                    section: sectionName,
+                    row: this._getLetterForRow(i),
+                    seat: this._getNumberForColumn(j),
+                    sponsor_name: ''
+                });
+
+                const seat = this._buildChairMesh(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH, chairX, i * STADIUM.STEP_HEIGHT + SEAT.HEIGHT / 2 - STADIUM.STEP_HEIGHT / 2, chairZ, material, seatModel);
+                this.chairMeshes.push(seat);
+                this.scene.add(seat);
+            }
+        }
+    }
+
+    /** build a seat */
+    _buildChairMesh(width,height,depth, x, y, z, material, seatModel) {
+        const geometry = GeometryFactory.box(width, height, depth);
+        const seat = MeshFactory.create(geometry, material,
+            {position: [x, y, z], rotation: [0,0,Math.PI]});
+
+        seat.userData = {...seatModel, originalVisibility: true, originalMaterial: material};
+
+        seat.onClick = () => this.onSeatClick({...seat.userData});
+
+        if (this._isCollisionWithPillar(x, z)) {
+            seat.visible = false;
+            seat.userData.originalVisibility = false;
+        }
+        return seat;
+    }
+
+    /**  build a step */
+    _buildStepMesh(width, depth, height, x, y, z, material) {
+        const geometry = GeometryFactory.box(width, height, depth);
+        return MeshFactory.create(geometry, material,
+            {position: [x, y - height / 2, z]});
+    }
+
+    /**  build a pillar */
+    _buildPillarMesh(width, height, depth, x, y, z, material) {
+        const geometry = GeometryFactory.box(width, height, depth);
+        return MeshFactory.create(geometry, material,
+            {position: [x, y - height / 2, z]});
+    }
+
+    /**  build a wall */
+    _buildWallMesh(width, height, depth, x, y, z, material) {
+        const geometry = GeometryFactory.box(width, height, depth);
+        return MeshFactory.create(geometry, material,
+            {position: [x, y, z]});
+    }
+
+    /**  build a roof */
+    _buildRoofMesh(width, height, depth, x, y, z, material) {
+        const geometry = GeometryFactory.box(width, height, depth)
+        return MeshFactory.create(geometry, material,
+            {position: [x, y, z]});
+    }
+
+
+
+    // ======================================
+
+
+    // ======================================
+    //          OTHERS METHODS
+    // ======================================
+
+    /** update userData property of seat with JSON file data */
     updateNames = () => {
         this.scene.traverse((object) => {
-            if (object instanceof THREE.Mesh && object.userData.seccao) {
+            if (object instanceof THREE.Mesh && object.userData.section) {
                 const chairInfo = object.userData;
 
-                // Procure por um ocupante correspondente no JSON
                 const occupant = this.occupants.find(data =>
-                    data.seccao === chairInfo.seccao &&
-                    data.fila === chairInfo.fila &&
-                    String(data.lugar) === String(chairInfo.lugar)
+                    data.section === chairInfo.section &&
+                    data.row === chairInfo.row &&
+                    String(data.seat) === String(chairInfo.seat)
                 );
-                // Se encontrar um ocupante, atualize o nome da cadeira
+                // If founded, update seat sponsor name
                 if (occupant) {
-                    object.userData.nome = occupant.nome;
+                    object.userData.sponsor_name = occupant.sponsor_name;
                 }
             }
         });
     }
 
-    /**
-     * Mesma lógica do teu searchSubject original.
-     * - repõe material/visibilidade originais
-     * - destaca em amarelo as cadeiras cujo nome contém a query
-     */
+    /** highlights seats when a sponsor was selected */
     highlightByName(query) {
         const searchQuery = (query || '').trim().toLowerCase();
 
-        // Restaurar todas as cadeiras
+        // restore all seats
         this.chairMeshes.forEach((mesh) => {
             mesh.material = mesh.userData.originalMaterial;
             mesh.visible = mesh.userData.originalVisibility !== false;
@@ -361,18 +414,23 @@ export class ThreeService {
             const chairInfo = mesh.userData;
             if (
                 chairInfo &&
-                chairInfo.nome &&
-                String(chairInfo.nome).toLowerCase().includes(searchQuery)
+                chairInfo.sponsor_name &&
+                String(chairInfo.sponsor_name).toLowerCase().includes(searchQuery)
             ) {
-                if (!mesh.userData.originalMaterial) mesh.userData.originalMaterial = mesh.material;
-                mesh.material = new THREE.MeshBasicMaterial({color: COLORS.GOLD});
+                if (!mesh.userData.originalMaterial) {
+                    mesh.userData.originalMaterial = mesh.material;
+                }
+                if (!this.materials.gold) {
+                    this.materials.gold = MaterialFactory.basic(COLORS.GOLD);
+                }
+                mesh.material = this.materials.gold;
                 hits++;
             }
         });
         return hits;
     }
 
-    // Eventos (iguais ao espírito do original)
+    /** update size page properties when changed */
     onResize() {
         if (!this.camera || !this.renderer) return;
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -381,15 +439,20 @@ export class ThreeService {
         this.controls?.update?.();
     }
 
-    // Quando se clica na cadeira
+    /** catch the mouse click on seat for display modal info */
     onMouseClick(event) {
-        // Raycast como no original (scene.children)
+
         const rect = this.renderer.domElement.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
         const y = -((event.clientY - rect.top) / rect.height * 2 - 1);
 
         const mouseVector = new THREE.Vector2(x, y);
-        const raycaster = new THREE.Raycaster();
+        const raycaster = new THREE.Raycaster(
+            new THREE.Vector3(),                 // start
+            new THREE.Vector3(0, 0, -1), // direction
+            0,                              // near
+            Infinity                             // far
+        );
         raycaster.setFromCamera(mouseVector, this.camera);
 
         const intersects = raycaster.intersectObjects(this.scene.children, true);
@@ -399,13 +462,13 @@ export class ThreeService {
         }
     }
 
-    // descartar geometrias e materiais
+    /** disposes of all Three.js resources and event listeners to prevent memory leaks */
     dispose() {
         cancelAnimationFrame(this._raf);
         window.removeEventListener('resize', this.onResize);
         window.removeEventListener('click', this.onMouseClick);
 
-        // dispose de geometrias/materiais
+        // dispose of geometries/materials in scene
         this.scene?.traverse?.((obj) => {
             if (obj.isMesh) {
                 obj.geometry?.dispose?.();
@@ -413,6 +476,11 @@ export class ThreeService {
                 else obj.material?.dispose?.();
             }
         });
+
+        // dispose custom materials
+        Object.values(this.materials || {}).forEach(m => m?.dispose?.());
+        this.materials = {};
+
         this.renderer?.dispose?.();
 
         if (this.renderer?.domElement?.parentNode) {
@@ -422,4 +490,6 @@ export class ThreeService {
         this.scene = this.camera = this.renderer = this.controls = null;
         this.chairMeshes = [];
     }
+
+    // ======================================
 }
