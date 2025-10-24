@@ -1,4 +1,4 @@
-export class ChairModel{
+export class SeatModel{
     constructor({ section, row , seat, sponsor_name}){
         this.section = section;
         this.row = row;

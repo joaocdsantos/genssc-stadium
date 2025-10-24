@@ -1,7 +1,7 @@
 // services/ThreeService.js
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {ChairModel} from "../models/ChairModel";
+import {SeatModel} from "../models/SeatModel";
 import {COLORS} from "../constants/colors.js";
 import {LIGHT, PILLAR, ROW_LETTERS, SEAT, STADIUM} from "../constants/stadium.js";
 import {ConfigsFactory, GeometryFactory, LightFactory, MaterialFactory, MeshFactory} from "../factories/ThreeFactories.js"
@@ -50,7 +50,8 @@ export class ThreeService {
     // ======================================
     /** Creates the Three.js scene, camera, renderer, and lights. */
     setupScene() {
-        // configs
+
+        // Three.js base configurations
         this.scene = ConfigsFactory.scene()
         this.camera = ConfigsFactory.perspectiveCamera()
         this.renderer = ConfigsFactory.webGlRenderer()
@@ -63,6 +64,7 @@ export class ThreeService {
 
     /** Builds the entire stadium structure. */
     buildStadiumStructure() {
+
         // creating materials
         const redMaterial = MaterialFactory.basic(COLORS.RED);
         const whiteMaterial = MaterialFactory.basic(COLORS.WHITE);
@@ -243,35 +245,35 @@ export class ThreeService {
                 const chairX = startX + j;
                 const chairZ = STADIUM.Z_START + i * STADIUM.SPACING;
 
-                const chairModel = new ChairModel({
+                const seatModel = new SeatModel({
                     section: sectionName,
                     row: this._getLetterForRow(i),
                     seat: this._getNumberForColumn(j),
                     sponsor_name: ''
                 });
 
-                const chair = this._buildChair(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH, chairX, i * STADIUM.STEP_HEIGHT, chairZ, material, chairModel);
-                this.chairMeshes.push(chair);
-                this.scene.add(chair);
+                const seat = this._buildChair(SEAT.WIDTH, SEAT.HEIGHT, SEAT.DEPTH, chairX, i * STADIUM.STEP_HEIGHT, chairZ, material, seatModel);
+                this.chairMeshes.push(seat);
+                this.scene.add(seat);
             }
         }
     }
 
     //* build stadium seat
-    _buildChair(width,height,depth, x, y, z, material, chairModel) {
+    _buildChair(width,height,depth, x, y, z, material, seatModel) {
         const geometry = GeometryFactory.box(width, height, depth);
-        const chair = MeshFactory.create(geometry, material,
+        const seat = MeshFactory.create(geometry, material,
             {position: [x, y, z], rotation: [0,0,Math.PI]});
 
-        chair.userData = {...chairModel, originalVisibility: true, originalMaterial: material};
+        seat.userData = {...seatModel, originalVisibility: true, originalMaterial: material};
 
-        chair.onClick = () => this.onSeatClick({...chair.userData});
+        seat.onClick = () => this.onSeatClick({...seat.userData});
 
         if (this._isCollisionWithPillar(x, z)) {
-            chair.visible = false;
-            chair.userData.originalVisibility = false;
+            seat.visible = false;
+            seat.userData.originalVisibility = false;
         }
-        return chair;
+        return seat;
     }
 
     //* build stadium steps
@@ -326,7 +328,7 @@ export class ThreeService {
                     data.row === chairInfo.row &&
                     String(data.seat) === String(chairInfo.seat)
                 );
-                // If founded, update chair sponsor name
+                // If founded, update seat sponsor name
                 if (occupant) {
                     object.userData.sponsor_name = occupant.sponsor_name;
                 }
