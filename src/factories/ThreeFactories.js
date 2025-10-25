@@ -1,9 +1,7 @@
 import * as THREE from 'three';
 import {PERSPECTIVE_CAMERA, SCENE} from "../constants/configs.js";
 
-/**
- * Configs Factory
- */
+/** Configs Factory */
 export const ConfigsFactory = {
     scene() {
         const scene = new THREE.Scene();
@@ -23,9 +21,7 @@ export const ConfigsFactory = {
     }
 }
 
-/**
- * Material Factory
- */
+/** Material Factory */
 export const MaterialFactory = {
     basic(color) {
         return new THREE.MeshBasicMaterial({color: color});
@@ -41,9 +37,7 @@ export const MaterialFactory = {
     }
 }
 
-/**
- * Lights Factory
- */
+/** Lights Factory */
 export const LightFactory = {
     ambient(color, intensity) {
         return new THREE.AmbientLight(color, intensity)
@@ -60,9 +54,7 @@ export const LightFactory = {
     }
 }
 
-/**
- * Geometry Factory
- */
+/** Geometry Factory */
 export const GeometryFactory = {
     box(width, height, depth) {
         return new THREE.BoxGeometry(width, height, depth)
@@ -78,10 +70,7 @@ export const GeometryFactory = {
     }
 };
 
-/**
- * Mesh Factory
- */
-
+/** Mesh Factory */
 export const MeshFactory = {
     create(geometry, material, {
         position = [0, 0, 0],

@@ -47,6 +47,7 @@ export class ThreeService {
     // ======================================
     //          PUBLIC METHODS
     // ======================================
+
     /** Creates the Three.js scene, camera, renderer, and lights. */
     setupScene() {
 
@@ -126,12 +127,11 @@ export class ThreeService {
         window.addEventListener('resize', this.onResize);
         window.addEventListener('click', this.onMouseClick);
     }
-    // ======================================
-
 
     // ======================================
     //          PRIVATE METHODS
     // ======================================
+
     /** creates needed three materials */
     _createMaterials(){
         this.materials = {
@@ -369,11 +369,6 @@ export class ThreeService {
             {position: [x, y, z]});
     }
 
-
-
-    // ======================================
-
-
     // ======================================
     //          OTHERS METHODS
     // ======================================
@@ -490,6 +485,4 @@ export class ThreeService {
         this.scene = this.camera = this.renderer = this.controls = null;
         this.chairMeshes = [];
     }
-
-    // ======================================
 }
