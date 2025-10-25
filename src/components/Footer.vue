@@ -35,6 +35,5 @@ const currentYear = new Date().getFullYear()
     margin-bottom: 10px;
     width: 100%;
     background-color: black;
-    /* Transparência para garantir que o texto seja visível sobre qualquer fundo */
 }
 </style>
