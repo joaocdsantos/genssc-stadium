@@ -47,6 +47,7 @@ export class ThreeService {
     // ======================================
     //          PUBLIC METHODS
     // ======================================
+
     /** Creates the Three.js scene, camera, renderer, and lights. */
     setupScene() {
 
@@ -86,9 +87,9 @@ export class ThreeService {
         const cameraDistance = Math.max(
             totalWidth / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
             totalHeight / (2 * Math.tan(this.camera.fov * Math.PI / 360))
-        );
+        )* 0.70;
 
-        this.camera.position.set(centerX, centerY + 15, centerZ - cameraDistance);
+        this.camera.position.set(centerX, centerY + 10, centerZ - cameraDistance);
         this.camera.lookAt(new THREE.Vector3(centerX, centerY, centerZ));
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -126,12 +127,11 @@ export class ThreeService {
         window.addEventListener('resize', this.onResize);
         window.addEventListener('click', this.onMouseClick);
     }
-    // ======================================
-
 
     // ======================================
     //          PRIVATE METHODS
     // ======================================
+
     /** creates needed three materials */
     _createMaterials(){
         this.materials = {
@@ -369,11 +369,6 @@ export class ThreeService {
             {position: [x, y, z]});
     }
 
-
-
-    // ======================================
-
-
     // ======================================
     //          OTHERS METHODS
     // ======================================
@@ -490,6 +485,4 @@ export class ThreeService {
         this.scene = this.camera = this.renderer = this.controls = null;
         this.chairMeshes = [];
     }
-
-    // ======================================
 }
