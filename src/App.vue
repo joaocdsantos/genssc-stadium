@@ -1,11 +1,9 @@
 <template>
-  <Bench />
-  <Footer />
+  <StadiumView />
 </template>
 
 <script setup>
-import Bench from './components/Bench.vue';
-import Footer from './components/Footer.vue'
+import StadiumView from "./views/StadiumView.vue";
 </script>
 
 <style>
@@ -16,5 +14,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background: #000000;
+
 }
 </style>
