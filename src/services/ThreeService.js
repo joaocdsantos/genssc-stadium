@@ -87,9 +87,9 @@ export class ThreeService {
         const cameraDistance = Math.max(
             totalWidth / (2 * Math.tan(this.camera.fov * Math.PI / 360)),
             totalHeight / (2 * Math.tan(this.camera.fov * Math.PI / 360))
-        );
+        )* 0.70;
 
-        this.camera.position.set(centerX, centerY + 15, centerZ - cameraDistance);
+        this.camera.position.set(centerX, centerY + 10, centerZ - cameraDistance);
         this.camera.lookAt(new THREE.Vector3(centerX, centerY, centerZ));
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
